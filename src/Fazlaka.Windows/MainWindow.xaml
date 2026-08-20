@@ -1,0 +1,236 @@
+<Window
+    x:Class="Fazlaka.Windows.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:views="using:Fazlaka.Windows.Views"
+    x:DefaultBindMode="OneWay">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="BaseAlt" />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid.Resources>
+            <LinearGradientBrush x:Key="CoverGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Offset="0" Color="#6D28D9" />
+                <GradientStop Offset="1" Color="#312E81" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="Hairline" Color="#1FFFFFFF" />
+            <AcrylicBrush x:Key="MiniAcrylic" TintColor="#0B0F19" TintOpacity="0.6" TintLuminosityOpacity="0.82" FallbackColor="#10141F" />
+            <Style x:Key="GhostCircleButton" TargetType="Button" BasedOn="{StaticResource FazlakaTransparentButtonStyle}">
+                <Setter Property="Width" Value="38" />
+                <Setter Property="Height" Value="38" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="CornerRadius" Value="19" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+        </Grid.Resources>
+
+        <Grid x:Name="AppTitleBar" Height="48" Background="Transparent">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0" Spacing="10">
+                <Border Width="26" Height="26" CornerRadius="8" Background="{StaticResource FazlakaGradient}">
+                    <TextBlock Text="ف" FontSize="15" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0" />
+                </Border>
+                <TextBlock Text="فذلكة" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource FazlakaTextPrimary}" VerticalAlignment="Center" />
+                <TextBlock Text="استوديو الحلقات الصوتية" FontSize="11" Foreground="{StaticResource FazlakaTextSecondary}" VerticalAlignment="Center" Margin="4,3,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <Grid x:Name="ShellRoot" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <muxc:NavigationView
+                x:Name="NavView"
+                PaneDisplayMode="LeftCompact"
+                CompactPaneLength="60"
+                OpenPaneLength="264"
+                IsBackButtonVisible="Visible"
+                IsBackEnabled="False"
+                IsSettingsVisible="False"
+                IsTitleBarAutoPaddingEnabled="False">
+
+                <muxc:NavigationView.Resources>
+                    <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#8B5CF6" />
+                    <AcrylicBrush x:Key="NavigationViewExpandedPaneBackground" TintColor="#0B0F19" TintOpacity="0.55" TintLuminosityOpacity="0.85" FallbackColor="#121826" />
+                    <AcrylicBrush x:Key="NavigationViewMinimalPaneBackground" TintColor="#0B0F19" TintOpacity="0.55" TintLuminosityOpacity="0.85" FallbackColor="#121826" />
+                    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#AEB4C2" />
+                    <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#2E8B5CF6" />
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#1A8B5CF6" />
+                    <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#268B5CF6" />
+                </muxc:NavigationView.Resources>
+
+                <muxc:NavigationView.MenuItems>
+                    <muxc:NavigationViewItem Tag="home" Content="الرئيسية" ToolTipService.ToolTip="الرئيسية">
+                        <muxc:NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE80F;" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
+                    <muxc:NavigationViewItem Tag="search" Content="البحث" ToolTipService.ToolTip="البحث">
+                        <muxc:NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE721;" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
+                    <muxc:NavigationViewItem Tag="seasons" Content="المواسم" ToolTipService.ToolTip="المواسم">
+                        <muxc:NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE8D6;" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
+                </muxc:NavigationView.MenuItems>
+
+                <muxc:NavigationView.FooterMenuItems>
+                    <muxc:NavigationViewItem
+                        x:Name="UpdateNavItem"
+                        Tag="profile"
+                        Visibility="Collapsed"
+                        ToolTipService.ToolTip="يتوفر تحديث جديد للتطبيق">
+                        <muxc:NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE896;" Foreground="{StaticResource FazlakaSecondary}" />
+                        </muxc:NavigationViewItem.Icon>
+                        <muxc:NavigationViewItem.Content>
+                            <Grid>
+                                <TextBlock Text="تحديث متاح" />
+                                <Ellipse Width="8" Height="8" Fill="#EF4444" Stroke="#0B0F19" StrokeThickness="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,-4,0" />
+                            </Grid>
+                        </muxc:NavigationViewItem.Content>
+                    </muxc:NavigationViewItem>
+                    <muxc:NavigationViewItem Tag="profile" Content="ملفي الشخصي" ToolTipService.ToolTip="الملف الشخصي والإعدادات">
+                        <muxc:NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE77B;" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
+                </muxc:NavigationView.FooterMenuItems>
+
+                <Grid>
+                    <Frame x:Name="ContentFrame" Background="Transparent">
+                        <Frame.ContentTransitions>
+                            <TransitionCollection>
+                                <NavigationThemeTransition />
+                            </TransitionCollection>
+                        </Frame.ContentTransitions>
+                    </Frame>
+                </Grid>
+            </muxc:NavigationView>
+
+            <Border
+                x:Name="MiniPlayer"
+                Grid.Row="1"
+                Height="70"
+                Visibility="Collapsed"
+                Background="{StaticResource MiniAcrylic}"
+                BorderBrush="{StaticResource Hairline}"
+                BorderThickness="0,1,0,0"
+                Tapped="OnMiniPlayerTapped">
+                <Grid>
+                    <ProgressBar
+                        x:Name="MiniProgress"
+                        Height="3"
+                        VerticalAlignment="Top"
+                        CornerRadius="0"
+                        Padding="0"
+                        Background="#14FFFFFF"
+                        Foreground="{StaticResource FazlakaPrimary}"
+                        Maximum="{x:Bind Player.SliderMaximum}"
+                        Value="{x:Bind Player.PositionSeconds}" />
+
+                    <Grid Margin="18,0" VerticalAlignment="Center" ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="46" Height="46" CornerRadius="10">
+                            <Grid>
+                                <Rectangle Fill="{StaticResource CoverGradient}" />
+                                <FontIcon Glyph="&#xE8D6;" FontSize="20" Foreground="#E9E2FF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Image
+                                    Source="{x:Bind views:Ui.ImageFromUrl(Player.CurrentEpisode.CoverUrl)}"
+                                    Stretch="UniformToFill"
+                                    Visibility="{x:Bind views:Ui.StringToVisibility(Player.CurrentEpisode.CoverUrl)}" />
+                            </Grid>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock
+                                Text="{x:Bind Player.CurrentEpisode.Title}"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource FazlakaTextPrimary}"
+                                MaxLines="1"
+                                TextTrimming="CharacterEllipsis" />
+                            <TextBlock FontSize="11" Foreground="{StaticResource FazlakaTextSecondary}">
+                                <Run Text="{x:Bind Player.PositionText}" /><Run Text="  /  " /><Run Text="{x:Bind Player.DurationText}" />
+                            </TextBlock>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Button Style="{StaticResource GhostCircleButton}" Command="{x:Bind Player.SkipPreviousCommand}" ToolTipService.ToolTip="الحلقة السابقة" AutomationProperties.Name="الحلقة السابقة">
+                                <Button.Resources>
+                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14FFFFFF" />
+                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#22FFFFFF" />
+                                </Button.Resources>
+                                <FontIcon Glyph="&#xE892;" FontSize="13">
+                                    <FontIcon.RenderTransform>
+                                        <ScaleTransform ScaleX="-1" />
+                                    </FontIcon.RenderTransform>
+                                </FontIcon>
+                            </Button>
+
+                            <Button
+                                Width="42"
+                                Height="42"
+                                CornerRadius="21"
+                                Padding="0"
+                                Style="{StaticResource FazlakaGradientButtonStyle}"
+                                Command="{x:Bind Player.PlayPauseCommand}"
+                                ToolTipService.ToolTip="تشغيل / إيقاف مؤقت"
+                                AutomationProperties.Name="تشغيل أو إيقاف مؤقت">
+                                <Button.Resources>
+                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#7C3AED" />
+                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#6D28D9" />
+                                </Button.Resources>
+                                <Grid>
+                                    <FontIcon Glyph="&#xE768;" FontSize="16" Visibility="{x:Bind views:Ui.ToCollapsed(Player.IsPlaying)}" />
+                                    <FontIcon Glyph="&#xE769;" FontSize="16" Visibility="{x:Bind views:Ui.ToVisibility(Player.IsPlaying)}" />
+                                </Grid>
+                            </Button>
+
+                            <Button Style="{StaticResource GhostCircleButton}" Command="{x:Bind Player.SkipNextCommand}" ToolTipService.ToolTip="الحلقة التالية" AutomationProperties.Name="الحلقة التالية">
+                                <Button.Resources>
+                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14FFFFFF" />
+                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#22FFFFFF" />
+                                </Button.Resources>
+                                <FontIcon Glyph="&#xE892;" FontSize="13" />
+                            </Button>
+
+                            <Rectangle Width="1" Height="24" Fill="{StaticResource Hairline}" Margin="6,0" />
+
+                            <Button Style="{StaticResource GhostCircleButton}" Click="OnExpandPlayerClicked" ToolTipService.ToolTip="فتح المشغّل الكامل" AutomationProperties.Name="فتح المشغل الكامل">
+                                <Button.Resources>
+                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14FFFFFF" />
+                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#22FFFFFF" />
+                                </Button.Resources>
+                                <FontIcon Glyph="&#xE740;" FontSize="14" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <views:LoginPage x:Name="LoginRoot" Grid.Row="1" Visibility="Collapsed" />
+    </Grid>
+</Window>

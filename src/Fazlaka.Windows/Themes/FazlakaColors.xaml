@@ -1,0 +1,46 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Color x:Key="FazlakaPrimaryColor">#8B5CF6</Color>
+    <Color x:Key="FazlakaPrimaryDarkColor">#5B21B6</Color>
+    <Color x:Key="FazlakaSecondaryColor">#F59E0B</Color>
+    <Color x:Key="FazlakaGlowColor">#F59E0B</Color>
+    <Color x:Key="FazlakaSurfaceColor">#151B2B</Color>
+    <Color x:Key="FazlakaBackgroundColor">#0B0F19</Color>
+    <Color x:Key="FazlakaCyanColor">#22D3EE</Color>
+    <Color x:Key="FazlakaErrorColor">#EF4444</Color>
+    <Color x:Key="FazlakaSuccessColor">#10B981</Color>
+    <Color x:Key="FazlakaCardColor">#1C2333</Color>
+    <Color x:Key="FazlakaFieldColor">#1F2937</Color>
+    <Color x:Key="FazlakaTextPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="FazlakaTextSecondaryColor">#9CA3AF</Color>
+    <Color x:Key="FazlakaBorderColor">#2A3348</Color>
+    <Color x:Key="FazlakaGradientEndColor">#4C1D95</Color>
+
+    <SolidColorBrush x:Key="FazlakaPrimary" Color="{StaticResource FazlakaPrimaryColor}" />
+    <SolidColorBrush x:Key="FazlakaPrimaryDark" Color="{StaticResource FazlakaPrimaryDarkColor}" />
+    <SolidColorBrush x:Key="FazlakaSecondary" Color="{StaticResource FazlakaSecondaryColor}" />
+    <SolidColorBrush x:Key="FazlakaGlow" Color="{StaticResource FazlakaGlowColor}" />
+    <SolidColorBrush x:Key="FazlakaSurface" Color="{StaticResource FazlakaSurfaceColor}" />
+    <SolidColorBrush x:Key="FazlakaBackground" Color="{StaticResource FazlakaBackgroundColor}" />
+    <SolidColorBrush x:Key="FazlakaCyan" Color="{StaticResource FazlakaCyanColor}" />
+    <SolidColorBrush x:Key="FazlakaError" Color="{StaticResource FazlakaErrorColor}" />
+    <SolidColorBrush x:Key="FazlakaSuccess" Color="{StaticResource FazlakaSuccessColor}" />
+    <SolidColorBrush x:Key="FazlakaCard" Color="{StaticResource FazlakaCardColor}" />
+    <SolidColorBrush x:Key="FazlakaField" Color="{StaticResource FazlakaFieldColor}" />
+    <SolidColorBrush x:Key="FazlakaTextPrimary" Color="{StaticResource FazlakaTextPrimaryColor}" />
+    <SolidColorBrush x:Key="FazlakaTextSecondary" Color="{StaticResource FazlakaTextSecondaryColor}" />
+    <SolidColorBrush x:Key="FazlakaBorder" Color="{StaticResource FazlakaBorderColor}" />
+
+    <LinearGradientBrush x:Key="FazlakaGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="{StaticResource FazlakaPrimaryColor}" />
+        <GradientStop Offset="1" Color="{StaticResource FazlakaGradientEndColor}" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="FazlakaPageBackground" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="{StaticResource FazlakaBackgroundColor}" />
+        <GradientStop Offset="1" Color="{StaticResource FazlakaSurfaceColor}" />
+    </LinearGradientBrush>
+
+</ResourceDictionary>

@@ -1,0 +1,13 @@
+﻿Fazlaka Windows assets go in this folder.
+
+Required before release:
+- app.ico                  Multi-size application icon (16/32/48/256 px)
+- Square44x44Logo.png      Small tile / taskbar icon
+- Square150x150Logo.png    Medium tile icon
+- Wide310x150Logo.png      Wide tile icon
+- StoreLogo.png            Store / installer branding
+- splash.png               Splash screen image (~1080x1080)
+- placeholder-cover.png    Default episode cover art fallback
+- logo-fazlaka.png         Header brand mark (purple #8B5CF6 on transparent)
+
+All files in this folder are copied to output via the Content Include in Fazlaka.Windows.csproj.
