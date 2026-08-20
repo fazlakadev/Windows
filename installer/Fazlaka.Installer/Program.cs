@@ -40,7 +40,7 @@ class Program
 
         Console.WriteLine();
         Console.WriteLine($"  {Dim}Welcome to Fazlaka Windows Installer{Reset}");
-        Console.WriteLine($"  {Dim}Version 1.0.0{Reset}");
+        Console.WriteLine($"  {Dim}  Version 1.1.0{Reset}");
         Console.WriteLine();
         Console.WriteLine($"  {Dim}This will install Fazlaka to:{Reset}");
         Console.WriteLine($"  {Purple}{InstallDir}{Reset}");
@@ -174,7 +174,7 @@ class Program
             key.SetValue("DisplayName", "Fazlaka");
             key.SetValue("UninstallString", $"\"{Path.Combine(InstallDir, "FazlakaSetup.exe")}\" --uninstall");
             key.SetValue("InstallLocation", InstallDir);
-            key.SetValue("DisplayVersion", "1.0.0");
+            key.SetValue("DisplayVersion", "1.1.0");
             key.SetValue("Publisher", "Fazlaka");
             key.SetValue("DisplayIcon", $"\"{Path.Combine(InstallDir, "Fazlaka.exe")}\"");
         }

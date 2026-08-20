@@ -6,8 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>FazlakaSetup</AssemblyName>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Authors>Fazlaka</Authors>
+    <Company>Fazlaka</Company>
+    <Copyright>Copyright (c) 2026 Fazlaka</Copyright>
     <Description>Fazlaka Windows Installer</Description>
   </PropertyGroup>
 </Project>
