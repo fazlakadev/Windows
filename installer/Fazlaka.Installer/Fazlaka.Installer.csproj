@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>FazlakaSetup</AssemblyName>
-    <Version>1.1.0</Version>
+    <Version>1.1.2</Version>
     <Authors>Fazlaka</Authors>
     <Company>Fazlaka</Company>
     <Copyright>Copyright (c) 2026 Fazlaka</Copyright>

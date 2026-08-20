@@ -10,7 +10,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Fazlaka.Windows</RootNamespace>
     <AssemblyName>Fazlaka</AssemblyName>
-    <Version>1.1.0</Version>
+    <Version>1.1.2</Version>
     <Authors>Fazlaka</Authors>
     <Company>Fazlaka</Company>
     <Copyright>Copyright (c) 2026 Fazlaka</Copyright>
