@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Fazlaka.Windows.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
+using Microsoft.Win32;
 
 namespace Fazlaka.Windows;
 
@@ -61,6 +62,7 @@ public partial class App : Application
             MainWindow.Activate();
             Log("MainWindow activated");
 
+            RegisterProtocol();
             HandleProtocolActivation();
         }
         catch (Exception ex)
@@ -123,6 +125,23 @@ public partial class App : Application
         {
             Log($"Protocol activation handling failed: {ex.Message}");
         }
+    }
+
+    private static void RegisterProtocol()
+    {
+        try
+        {
+            var exe = Process.GetCurrentProcess().MainModule?.FileName;
+            if (string.IsNullOrEmpty(exe)) return;
+
+            using var root = Registry.ClassesRoot.CreateSubKey("fazlaka");
+            root.SetValue("", "URL:Fazlaka Protocol");
+            root.SetValue("URL Protocol", "");
+
+            using var shell = root.CreateSubKey("shell\\open\\command");
+            shell.SetValue("", $"\"{exe}\" \"%1\"");
+        }
+        catch { }
     }
 
     private static void Log(string message)

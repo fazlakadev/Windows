@@ -100,6 +100,13 @@ public partial class MainWindow : Window
                     @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Fazlaka", false);
             }
             catch { }
+
+            DetailText.Text = "Removing fazlaka:// protocol...";
+            try
+            {
+                Registry.ClassesRoot.DeleteSubKeyTree("fazlaka", false);
+            }
+            catch { }
             await AnimateProgress(0.95);
 
             await Task.Delay(300);

@@ -133,6 +133,8 @@ public partial class MainWindow : Window
         {
             ShowStatus("Removing installation...");
 
+            UnregisterProtocol();
+
             if (Directory.Exists(_installPath))
                 Directory.Delete(_installPath, true);
 
@@ -205,6 +207,11 @@ public partial class MainWindow : Window
             DetailText.Text = "Add/Remove Programs entry";
             await AnimateProgress(0.96);
             RegisterUninstaller();
+
+            ShowStatus("Registering fazlaka:// protocol...");
+            DetailText.Text = "Deep link protocol";
+            await AnimateProgress(0.98);
+            RegisterProtocol();
 
             ShowStatus("Installation complete!");
             DetailText.Text = "";
@@ -310,6 +317,31 @@ public partial class MainWindow : Window
             WindowStyle = ProcessWindowStyle.Hidden
         };
         Process.Start(psi)?.WaitForExit();
+    }
+
+    private void RegisterProtocol()
+    {
+        try
+        {
+            var exe = Path.Combine(_installPath, "Fazlaka.exe");
+
+            using var root = Registry.ClassesRoot.CreateSubKey("fazlaka");
+            root.SetValue("", "URL:Fazlaka Protocol");
+            root.SetValue("URL Protocol", "");
+
+            using var shell = root.CreateSubKey("shell\\open\\command");
+            shell.SetValue("", $"\"{exe}\" \"%1\"");
+        }
+        catch { }
+    }
+
+    private void UnregisterProtocol()
+    {
+        try
+        {
+            Registry.ClassesRoot.DeleteSubKeyTree("fazlaka", false);
+        }
+        catch { }
     }
 
     private void RegisterUninstaller()
