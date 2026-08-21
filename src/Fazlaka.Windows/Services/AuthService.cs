@@ -43,7 +43,7 @@ public class AuthService
 
     public async Task<User> SignInAsync(CancellationToken cancellationToken = default)
     {
-        var backendUrl = ApiService.BaseUrl.TrimEnd('/');
+        var backendUrl = ApiService.BaseUrl.TrimEnd('/') + "/";
         var authUrl = $"{backendUrl}auth/desktop/google";
         OpenBrowser(authUrl);
         return null!;
@@ -51,7 +51,7 @@ public class AuthService
 
     public async Task<User> SignInGithubAsync(CancellationToken cancellationToken = default)
     {
-        var backendUrl = ApiService.BaseUrl.TrimEnd('/');
+        var backendUrl = ApiService.BaseUrl.TrimEnd('/') + "/";
         var authUrl = $"{backendUrl}auth/desktop/github";
         OpenBrowser(authUrl);
         return null!;
@@ -59,7 +59,7 @@ public class AuthService
 
     public async Task<User> SignInFacebookAsync(CancellationToken cancellationToken = default)
     {
-        var backendUrl = ApiService.BaseUrl.TrimEnd('/');
+        var backendUrl = ApiService.BaseUrl.TrimEnd('/') + "/";
         var authUrl = $"{backendUrl}auth/desktop/facebook";
         OpenBrowser(authUrl);
         return null!;

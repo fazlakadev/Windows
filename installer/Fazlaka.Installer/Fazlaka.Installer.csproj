@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <AssemblyName>FazlakaSetup</AssemblyName>
-    <Version>1.1.7</Version>
+    <Version>1.1.8</Version>
     <Authors>Fazlaka</Authors>
     <Company>Fazlaka</Company>
     <Copyright>Copyright (c) 2026 Fazlaka</Copyright>

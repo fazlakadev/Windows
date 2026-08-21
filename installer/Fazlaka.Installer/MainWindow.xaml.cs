@@ -353,7 +353,7 @@ public partial class MainWindow : Window
             key.SetValue("DisplayName", "Fazlaka");
             key.SetValue("UninstallString", $"\"{Path.Combine(_installPath, "FazlakaUninstall.exe")}\"");
             key.SetValue("InstallLocation", _installPath);
-            key.SetValue("DisplayVersion", "1.1.7");
+            key.SetValue("DisplayVersion", "1.1.8");
             key.SetValue("Publisher", "Fazlaka");
             key.SetValue("DisplayIcon", $"\"{Path.Combine(_installPath, "Fazlaka.exe")}\"");
         }
