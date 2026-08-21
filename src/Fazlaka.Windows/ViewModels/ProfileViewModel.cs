@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -201,6 +203,65 @@ public partial class ProfileViewModel : ObservableObject
         finally
         {
             LoggedOut?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    [RelayCommand]
+    private void UninstallApp()
+    {
+        try
+        {
+            var baseDir = AppContext.BaseDirectory;
+            var uninstaller = Path.Combine(baseDir, "FazlakaSetup.exe");
+            if (File.Exists(uninstaller))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = uninstaller,
+                    UseShellExecute = true,
+                });
+            }
+
+            var installDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Fazlaka");
+
+            var desktopLnk = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Fazlaka.lnk");
+
+            if (File.Exists(desktopLnk)) File.Delete(desktopLnk);
+
+            var startMenu = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), "Programs", "Fazlaka");
+            if (Directory.Exists(startMenu)) Directory.Delete(startMenu, true);
+
+            try
+            {
+                Microsoft.Win32.Registry.LocalMachine.DeleteSubKeyTree(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Fazlaka", false);
+            }
+            catch { }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c timeout /t 2 >nul && rmdir /s /q \"{baseDir}\"",
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+            });
+
+            Microsoft.UI.Xaml.Application.Current.Exit();
+        }
+        catch
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c timeout /t 2 >nul && rmdir /s /q \"{AppContext.BaseDirectory}\"",
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+            });
+
+            Microsoft.UI.Xaml.Application.Current.Exit();
         }
     }
 

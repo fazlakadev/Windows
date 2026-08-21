@@ -74,6 +74,24 @@ public class AuthService
         }
     }
 
+    public async Task<User> RegisterAsync(string username, string name, string email, string password, CancellationToken cancellationToken = default)
+    {
+        var session = await _api.PostAuthRegisterAsync(username, name, email, password, cancellationToken)
+            ?? throw new InvalidOperationException("register_failed");
+
+        PersistSession(session);
+        return session.User;
+    }
+
+    public async Task<User> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
+    {
+        var session = await _api.PostAuthLoginAsync(email, password, cancellationToken)
+            ?? throw new InvalidOperationException("login_failed");
+
+        PersistSession(session);
+        return session.User;
+    }
+
     public void SignOut()
     {
         _api.SetAuthToken(null);
@@ -86,14 +104,16 @@ public class AuthService
         return Task.CompletedTask;
     }
 
-    private void PersistSession(AuthSession session, GoogleClaims claims)
+    private void PersistSession(AuthSession session, GoogleClaims? claims = null)
     {
         _settings.AuthToken = session.AccessToken;
         _settings.RefreshToken = session.RefreshToken;
-        _settings.UserId = FirstNonEmpty(claims.Sub, session.User.Id.ToString());
-        _settings.UserName = FirstNonEmpty(session.User.Name, claims.Name);
-        _settings.UserEmail = FirstNonEmpty(session.User.Email, claims.Email);
-        _settings.UserAvatar = FirstNonEmpty(session.User.AvatarUrl, claims.Picture);
+        _settings.UserId = claims is not null
+            ? FirstNonEmpty(claims.Sub, session.User.Id.ToString())
+            : session.User.Id.ToString();
+        _settings.UserName = FirstNonEmpty(session.User.Name, claims?.Name ?? string.Empty);
+        _settings.UserEmail = FirstNonEmpty(session.User.Email, claims?.Email ?? string.Empty);
+        _settings.UserAvatar = FirstNonEmpty(session.User.AvatarUrl, claims?.Picture ?? string.Empty);
         _api.SetAuthToken(session.AccessToken);
     }
 

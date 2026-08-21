@@ -185,6 +185,84 @@ public class ApiService
         }
     }
 
+    public async Task<AuthSession?> PostAuthRegisterAsync(string username, string name, string email, string password, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "auth/register")
+            {
+                Content = JsonContent.Create(new { username, name, email, password }, options: CamelOpts),
+            };
+            using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ApiResult<AuthResponseDto>>(CamelOpts, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result?.Data?.AccessToken is null)
+            {
+                Debug.WriteLine("[Fazlaka] Register response did not contain an access token.");
+                return null;
+            }
+
+            var user = result.Data.User is null ? new User() : ToUser(result.Data.User);
+            return new AuthSession(result.Data.AccessToken, result.Data.RefreshToken ?? string.Empty, user);
+        }
+        catch (HttpRequestException ex)
+        {
+            Debug.WriteLine($"[Fazlaka] Register failed: {ex.Message}");
+            throw new InvalidOperationException("البريد الإلكتروني أو اسم المستخدم مستخدم بالفعل، أو البيانات غير صحيحة.");
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex) when (ex is JsonException or TaskCanceledException or InvalidOperationException)
+        {
+            Debug.WriteLine($"[Fazlaka] Register failed: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<AuthSession?> PostAuthLoginAsync(string email, string password, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "auth/login")
+            {
+                Content = JsonContent.Create(new { email, password }, options: CamelOpts),
+            };
+            using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ApiResult<AuthResponseDto>>(CamelOpts, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result?.Data?.AccessToken is null)
+            {
+                Debug.WriteLine("[Fazlaka] Login response did not contain an access token.");
+                return null;
+            }
+
+            var user = result.Data.User is null ? new User() : ToUser(result.Data.User);
+            return new AuthSession(result.Data.AccessToken, result.Data.RefreshToken ?? string.Empty, user);
+        }
+        catch (HttpRequestException ex)
+        {
+            Debug.WriteLine($"[Fazlaka] Login failed: {ex.Message}");
+            throw new InvalidOperationException("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex) when (ex is JsonException or TaskCanceledException or InvalidOperationException)
+        {
+            Debug.WriteLine($"[Fazlaka] Login failed: {ex.Message}");
+            return null;
+        }
+    }
+
     private async Task<ApiResult<List<T>>> GetListAsync<T>(string url, CancellationToken cancellationToken)
     {
         var result = await SendForJsonAsync<ApiResult<List<T>>>(

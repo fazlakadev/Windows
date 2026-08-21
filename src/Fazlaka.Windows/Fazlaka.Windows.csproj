@@ -11,11 +11,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Fazlaka.Windows</RootNamespace>
     <AssemblyName>Fazlaka</AssemblyName>
-    <Version>1.1.4</Version>
+    <Version>1.1.5</Version>
     <Authors>Fazlaka</Authors>
     <Company>Fazlaka</Company>
     <Copyright>Copyright (c) 2026 Fazlaka</Copyright>
-    <Description>Fazlaka - ????? Windows Desktop App</Description>
+    <Description>Fazlaka - منصّة الحلقات الصوتية العربية لـ Windows</Description>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.*" />

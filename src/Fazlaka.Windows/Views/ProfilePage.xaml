@@ -116,6 +116,29 @@
                         </Button>
 
                         <Button
+                            Background="#14F59E0B"
+                            Foreground="#FBBF24"
+                            BorderThickness="0"
+                            CornerRadius="10"
+                            Padding="20,12"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            Command="{x:Bind ViewModel.UninstallAppCommand}"
+                            ToolTipService.ToolTip="إلغاء تثبيت التطبيق"
+                            AutomationProperties.Name="إلغاء التثبيت">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#22F59E0B" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#30F59E0B" />
+                                <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FCD34D" />
+                                <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#FDE68A" />
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <FontIcon Glyph="&#xE74D;" FontSize="14" />
+                                <TextBlock Text="إلغاء التثبيت" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button
                             Background="#14EF4444"
                             Foreground="#F87171"
                             BorderThickness="0"
