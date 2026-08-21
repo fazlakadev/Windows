@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Fazlaka.Windows.Services;
 using Microsoft.UI.Xaml;
-using Velopack;
 
 namespace Fazlaka.Windows;
 
@@ -14,30 +14,56 @@ public partial class App : Application
 
     public static ServiceContainer Services { get; } = new();
 
+    private static readonly string LogPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Fazlaka", "crash.log");
+
     public App()
     {
         try
         {
-            VelopackApp.Build().Run();
+            var dir = Path.GetDirectoryName(LogPath);
+            if (dir != null) Directory.CreateDirectory(dir);
+            File.WriteAllText(LogPath, $"[{DateTime.Now}] App() ctor start\n");
+        }
+        catch { }
+
+        try
+        {
+            InitializeComponent();
+            Log("InitializeComponent done");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[Fazlaka] Velopack startup skipped: {ex}");
+            Log($"InitializeComponent FAILED: {ex}");
         }
-
-        InitializeComponent();
 
         UnhandledException += OnUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        Log("Exception handlers registered");
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        ConfigureServices();
+        Log("OnLaunched START");
+        try
+        {
+            ConfigureServices();
+            Log("Services configured");
 
-        MainWindow = new MainWindow();
-        MainWindow.Activate();
+            MainWindow = new MainWindow();
+            Log("MainWindow created");
+
+            MainWindow.Activate();
+            Log("MainWindow activated");
+        }
+        catch (Exception ex)
+        {
+            var inner = ex.InnerException ?? ex;
+            Log($"OnLaunched FAILED: {inner.GetType().Name}: {inner.Message}");
+            Log($"Full: {ex}");
+        }
     }
 
     private static void ConfigureServices()
@@ -49,11 +75,22 @@ public partial class App : Application
         Services.Register(() => new UpdateService(Services.Get<ApiService>()));
     }
 
+    private static void Log(string message)
+    {
+        try
+        {
+            File.AppendAllText(LogPath, $"[{DateTime.Now:HH:mm:ss.fff}] {message}\n");
+        }
+        catch { }
+    }
+
     private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
+        Log($"Unhandled UI exception: {e.Message}");
         Debug.WriteLine($"[Fazlaka] Unhandled UI exception: {e.Message}");
         if (e.Exception is not null)
         {
+            Log($"Exception: {e.Exception}");
             Debug.WriteLine(e.Exception.ToString());
         }
         e.Handled = true;
@@ -61,11 +98,13 @@ public partial class App : Application
 
     private void OnDomainUnhandledException(object sender, System.UnhandledExceptionEventArgs e)
     {
+        Log($"Fatal CLR exception: {e.ExceptionObject}");
         Debug.WriteLine($"[Fazlaka] Fatal CLR exception: {e.ExceptionObject}");
     }
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
+        Log($"Unobserved task exception: {e.Exception}");
         Debug.WriteLine($"[Fazlaka] Unobserved task exception: {e.Exception}");
         e.SetObserved();
     }
@@ -112,9 +151,9 @@ public sealed class ServiceContainer
                     $"No service of type '{typeof(TService).FullName}' has been registered.");
             }
 
-            var instance = factory();
+            var instance = (TService)factory();
             _instances[typeof(TService)] = instance;
-            return (TService)instance;
+            return instance;
         }
     }
 

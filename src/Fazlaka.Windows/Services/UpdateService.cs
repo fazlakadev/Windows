@@ -1,10 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Fazlaka.Windows.Models;
-using Velopack;
 
 namespace Fazlaka.Windows.Services;
 
@@ -75,25 +77,39 @@ public class UpdateService
 
         try
         {
-            var manager = new UpdateManager(update.DownloadUrl);
-            var updateInfo = await manager.CheckForUpdatesAsync().ConfigureAwait(false);
-            if (updateInfo is null)
+            var installDir = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)
+                ?? AppContext.BaseDirectory;
+
+            using var http = new HttpClient();
+            var zipBytes = await http.GetByteArrayAsync(update.DownloadUrl, cancellationToken).ConfigureAwait(false);
+
+            var tempZip = Path.Combine(Path.GetTempPath(), $"Fazlaka-update-{update.Version}.zip");
+            await File.WriteAllBytesAsync(tempZip, zipBytes, cancellationToken).ConfigureAwait(false);
+
+            var tempExtract = Path.Combine(Path.GetTempPath(), $"Fazlaka-update-{update.Version}");
+            if (Directory.Exists(tempExtract))
+                Directory.Delete(tempExtract, true);
+            ZipFile.ExtractToDirectory(tempZip, tempExtract);
+
+            var setupExe = FindSetupInExtracted(tempExtract);
+            if (setupExe is not null)
             {
-                if (update.IsBlockingUpdate)
+                Process.Start(new ProcessStartInfo
                 {
-                    throw new InvalidOperationException(
-                        $"Update {update.Version} is mandatory but no Velopack package was found at {update.DownloadUrl}.");
-                }
-
-                Debug.WriteLine("[Fazlaka] No Velopack package available for the announced update; skipping install.");
-                return;
+                    FileName = setupExe,
+                    UseShellExecute = true
+                });
             }
-
-            await manager.DownloadUpdatesAsync(
-                updateInfo,
-                percent => progress?.Report(percent / 100.0),
-                cancellationToken).ConfigureAwait(false);
-            manager.ApplyUpdatesAndRestart(updateInfo.TargetFullRelease);
+            else
+            {
+                var appExe = Path.Combine(installDir, "Fazlaka.exe");
+                CopyDirectory(tempExtract, installDir);
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = appExe,
+                    UseShellExecute = true
+                });
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -101,8 +117,31 @@ public class UpdateService
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[Fazlaka] Failed to download/install update {update.Version}: {ex}");
+            Debug.WriteLine($"[Fazlaka] Failed to install update {update.Version}: {ex}");
             throw new InvalidOperationException($"Failed to install update {update.Version}.", ex);
+        }
+    }
+
+    private static string? FindSetupInExtracted(string dir)
+    {
+        foreach (var exe in Directory.GetFiles(dir, "*.exe", SearchOption.AllDirectories))
+        {
+            if (Path.GetFileName(exe).Contains("Setup", StringComparison.OrdinalIgnoreCase))
+                return exe;
+        }
+        return null;
+    }
+
+    private static void CopyDirectory(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+        foreach (var file in Directory.GetFiles(source))
+        {
+            File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), true);
+        }
+        foreach (var dir in Directory.GetDirectories(source))
+        {
+            CopyDirectory(dir, Path.Combine(destination, Path.GetFileName(dir)));
         }
     }
 
