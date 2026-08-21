@@ -114,7 +114,7 @@
                     <StackPanel VerticalAlignment="Center" Margin="14,0,0,0">
                         <TextBlock Text="&#x641;&#x630;&#x644;&#x643;&#x629;" FontFamily="Segoe UI Variable Display, Segoe UI"
                                    FontSize="20" FontWeight="SemiBold" Foreground="White"/>
-                        <TextBlock Text="Windows Installer v1.1.6" FontSize="11" Foreground="#6B7280"/>
+                        <TextBlock Text="Windows Installer v1.1.7" FontSize="11" Foreground="#6B7280"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -153,7 +153,7 @@
                     <TextBlock Text="&#x641;&#x630;&#x644;&#x643;&#x629; &#x647;&#x64A; &#x627;&#x644;&#x645;&#x639;&#x644;&#x648;&#x654;&#x62A; &#x627;&#x644;&#x62A;&#x634;&#x63A;&#x64A;&#x644;&#x629; &#x644;&#x644;&#x62A;&#x639;&#x644;&#x64A;&#x645; &#x628;&#x639;&#x646; &#x643;&#x644; &#x627;&#x644;&#x645;&#x639;&#x644;&#x648;&#x645;&#x627;&#x62A; &#x627;&#x644;&#x62A;&#x634;&#x63A;&#x64A;&#x644;&#x629; &#x627;&#x644;&#x645;&#x648;&#x642;&#x639;&#x629;."
                                FontSize="14" Foreground="#9CA3AF" TextWrapping="Wrap"
                                MaxWidth="400" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                    <TextBlock Text="This will install Fazlaka v1.1.6 on your computer."
+                    <TextBlock Text="This will install Fazlaka v1.1.7 on your computer."
                                FontSize="13" Foreground="#6B7280" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Grid>
