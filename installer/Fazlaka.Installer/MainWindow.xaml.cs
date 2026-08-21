@@ -14,12 +14,62 @@ public partial class MainWindow : Window
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Fazlaka");
 
     private string _installPath = DefaultPath;
+    private int _currentStep = 1;
     private bool _installed;
 
     public MainWindow()
     {
         InitializeComponent();
         InstallPathText.Text = _installPath;
+    }
+
+    private void SetStep(int step)
+    {
+        _currentStep = step;
+
+        WelcomePanel.Visibility = step == 1 ? Visibility.Visible : Visibility.Collapsed;
+        LocationPanel.Visibility = step == 2 ? Visibility.Visible : Visibility.Collapsed;
+        InstallingPanel.Visibility = step == 3 ? Visibility.Visible : Visibility.Collapsed;
+        CompletePanel.Visibility = step == 4 ? Visibility.Visible : Visibility.Collapsed;
+
+        BackButton.Visibility = step > 1 && step < 3 ? Visibility.Visible : Visibility.Collapsed;
+        NextButton.Visibility = step < 3 || step == 4 ? Visibility.Visible : Visibility.Collapsed;
+        CloseButton.Visibility = step < 3 || step == 4 ? Visibility.Visible : Visibility.Collapsed;
+        UninstallButton.Visibility = _installed && step < 3 ? Visibility.Visible : Visibility.Collapsed;
+
+        if (step == 1)
+        {
+            NextButton.Content = "Next \u2192";
+        }
+        else if (step == 2)
+        {
+            NextButton.Content = "Install \u2192";
+        }
+        else if (step == 4)
+        {
+            NextButton.Content = "Launch";
+            CloseButton.Visibility = Visibility.Collapsed;
+        }
+
+        UpdateStepIndicator(step);
+    }
+
+    private void UpdateStepIndicator(int step)
+    {
+        var activeBrush = new SolidColorBrush(Color.FromRgb(0x7C, 0x3A, 0xED));
+        var inactiveBrush = new SolidColorBrush(Color.FromRgb(0x37, 0x41, 0x51));
+
+        Step1Dot.Fill = step >= 1 ? activeBrush : inactiveBrush;
+        Step1Label.Foreground = step >= 1 ? activeBrush : inactiveBrush;
+
+        Step2Dot.Fill = step >= 2 ? activeBrush : inactiveBrush;
+        Step2Label.Foreground = step >= 2 ? activeBrush : inactiveBrush;
+
+        Step3Dot.Fill = step >= 3 ? activeBrush : inactiveBrush;
+        Step3Label.Foreground = step >= 3 ? activeBrush : inactiveBrush;
+
+        Step4Dot.Fill = step >= 4 ? activeBrush : inactiveBrush;
+        Step4Label.Foreground = step >= 4 ? activeBrush : inactiveBrush;
     }
 
     private void OnBrowseClick(object sender, RoutedEventArgs e)
@@ -37,51 +87,31 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnInstallClick(object sender, RoutedEventArgs e)
+    private void OnNextClick(object sender, RoutedEventArgs e)
     {
-        InstallButton.IsEnabled = false;
-        CancelButton.IsEnabled = false;
-
-        try
+        if (_currentStep == 1)
         {
-            var appSource = FindAppSource();
-            if (appSource == null)
-            {
-                ShowStatus("Error: Could not find app files next to installer.", true);
-                InstallButton.IsEnabled = true;
-                CancelButton.IsEnabled = true;
-                return;
-            }
-
-            ShowStatus("Creating installation directory...");
-            await AnimateProgress(0.05);
-            Directory.CreateDirectory(_installPath);
-
-            ShowStatus("Copying files...");
-            await CopyFilesWithProgress(appSource);
-
-            ShowStatus("Creating shortcuts...");
-            await AnimateProgress(0.92);
-            CreateShortcuts();
-
-            ShowStatus("Registering...");
-            await AnimateProgress(0.96);
-            RegisterUninstaller();
-
-            ShowStatus("Installation complete!");
-            await AnimateProgress(1.0);
-
-            _installed = true;
-            InstallButton.Visibility = Visibility.Collapsed;
-            UninstallButton.Visibility = Visibility.Visible;
-            CancelButton.Content = "Launch";
+            SetStep(2);
         }
-        catch (Exception ex)
+        else if (_currentStep == 2)
         {
-            ShowStatus($"Installation failed: {ex.Message}", true);
-            InstallButton.IsEnabled = true;
-            CancelButton.IsEnabled = true;
+            StartInstall();
         }
+        else if (_currentStep == 4)
+        {
+            LaunchApp();
+            Close();
+        }
+    }
+
+    private void OnBackClick(object sender, RoutedEventArgs e)
+    {
+        if (_currentStep == 2) SetStep(1);
+    }
+
+    private void OnCloseClick(object sender, RoutedEventArgs e)
+    {
+        Close();
     }
 
     private async void OnUninstallClick(object sender, RoutedEventArgs e)
@@ -94,11 +124,14 @@ public partial class MainWindow : Window
 
         if (result != MessageBoxResult.Yes) return;
 
-        UninstallButton.IsEnabled = false;
+        SetStep(3);
+        NextButton.Visibility = Visibility.Collapsed;
+        CloseButton.Visibility = Visibility.Collapsed;
+        BackButton.Visibility = Visibility.Collapsed;
 
         try
         {
-            ShowStatus("Uninstalling...");
+            ShowStatus("Removing installation...");
 
             if (Directory.Exists(_installPath))
                 Directory.Delete(_installPath, true);
@@ -121,35 +154,73 @@ public partial class MainWindow : Window
             catch { }
 
             ShowStatus("Fazlaka has been uninstalled.");
+            DetailText.Text = "";
             await AnimateProgress(1.0);
 
             _installed = false;
-            InstallButton.Visibility = Visibility.Visible;
-            InstallButton.IsEnabled = true;
-            UninstallButton.Visibility = Visibility.Collapsed;
+            SetStep(4);
+            CompletePanel.Visibility = Visibility.Collapsed;
+            LocationPanel.Visibility = Visibility.Visible;
+            SetStep(2);
         }
         catch (Exception ex)
         {
             ShowStatus($"Uninstall failed: {ex.Message}", true);
-            UninstallButton.IsEnabled = true;
+            NextButton.Visibility = Visibility.Visible;
+            CloseButton.Visibility = Visibility.Visible;
         }
     }
 
-    private void OnCancelClick(object sender, RoutedEventArgs e)
+    private async void StartInstall()
     {
-        if (_installed)
+        SetStep(3);
+        NextButton.Visibility = Visibility.Collapsed;
+        CloseButton.Visibility = Visibility.Collapsed;
+        BackButton.Visibility = Visibility.Collapsed;
+
+        try
         {
-            var exe = Path.Combine(_installPath, "Fazlaka.exe");
-            if (File.Exists(exe))
+            var appSource = FindAppSource();
+            if (appSource == null)
             {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = exe,
-                    UseShellExecute = true
-                });
+                ShowStatus("Error: Could not find app files next to installer.", true);
+                CloseButton.Visibility = Visibility.Visible;
+                return;
             }
+
+            ShowStatus("Creating installation directory...");
+            DetailText.Text = _installPath;
+            await AnimateProgress(0.03);
+            Directory.CreateDirectory(_installPath);
+
+            ShowStatus("Copying application files...");
+            await CopyFilesWithProgress(appSource);
+
+            ShowStatus("Creating shortcuts...");
+            DetailText.Text = "Desktop and Start Menu";
+            await AnimateProgress(0.92);
+            CreateShortcuts();
+
+            ShowStatus("Registering with Windows...");
+            DetailText.Text = "Add/Remove Programs entry";
+            await AnimateProgress(0.96);
+            RegisterUninstaller();
+
+            ShowStatus("Installation complete!");
+            DetailText.Text = "";
+            await AnimateProgress(1.0);
+
+            _installed = true;
+            InstallPathFinal.Text = $"Installed to: {_installPath}";
+            await Task.Delay(400);
+            SetStep(4);
         }
-        Close();
+        catch (Exception ex)
+        {
+            ShowStatus($"Installation failed: {ex.Message}", true);
+            DetailText.Text = ex.ToString();
+            CloseButton.Visibility = Visibility.Visible;
+        }
     }
 
     private void ShowStatus(string message, bool isError = false)
@@ -175,17 +246,25 @@ public partial class MainWindow : Window
             if (dir != null) Directory.CreateDirectory(dir);
             File.Copy(file, dest, true);
 
+            if (current % 20 == 0 || current == total)
+            {
+                DetailText.Text = $"{current} / {total} files";
+            }
+
             var pct = (double)current / total;
-            ShowStatus($"Copying files... {current}/{total}");
-            await AnimateProgress(0.05 + pct * 0.85);
+            await AnimateProgress(0.03 + pct * 0.87);
+
+            if (current % 5 == 0)
+                await Task.Delay(1);
         }
     }
 
     private async Task AnimateProgress(double target)
     {
         var current = ProgressBar.ActualWidth;
-        var targetWidth = target * 440;
-        var steps = 20;
+        var totalWidth = 616;
+        var targetWidth = target * totalWidth;
+        var steps = 15;
         var step = (targetWidth - current) / steps;
 
         for (int i = 0; i < steps; i++)
@@ -214,7 +293,7 @@ public partial class MainWindow : Window
 
         CreateLnk(
             Path.Combine(startMenuPath, "Uninstall Fazlaka.lnk"),
-            Path.Combine(_installPath, "FazlakaSetup.exe"));
+            Path.Combine(_installPath, "FazlakaUninstall.exe"));
     }
 
     private static void CreateLnk(string path, string target)
@@ -240,9 +319,9 @@ public partial class MainWindow : Window
             using var key = Registry.LocalMachine.CreateSubKey(
                 @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Fazlaka");
             key.SetValue("DisplayName", "Fazlaka");
-            key.SetValue("UninstallString", $"\"{Path.Combine(_installPath, "FazlakaSetup.exe")}\" --uninstall");
+            key.SetValue("UninstallString", $"\"{Path.Combine(_installPath, "FazlakaUninstall.exe")}\"");
             key.SetValue("InstallLocation", _installPath);
-            key.SetValue("DisplayVersion", "1.1.4");
+            key.SetValue("DisplayVersion", "1.1.6");
             key.SetValue("Publisher", "Fazlaka");
             key.SetValue("DisplayIcon", $"\"{Path.Combine(_installPath, "Fazlaka.exe")}\"");
         }
@@ -265,5 +344,28 @@ public partial class MainWindow : Window
                 return dir;
         }
         return null;
+    }
+
+    private static string? FindUninstallSource(string appSource)
+    {
+        var exe = Path.Combine(appSource, "FazlakaUninstall.exe");
+        if (File.Exists(exe)) return exe;
+        return null;
+    }
+
+    private void LaunchApp()
+    {
+        if (_installed)
+        {
+            var exe = Path.Combine(_installPath, "Fazlaka.exe");
+            if (File.Exists(exe))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = exe,
+                    UseShellExecute = true
+                });
+            }
+        }
     }
 }

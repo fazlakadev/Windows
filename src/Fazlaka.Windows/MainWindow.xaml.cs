@@ -63,6 +63,7 @@ public sealed partial class MainWindow : Window
         Player.PropertyChanged += OnPlayerPropertyChanged;
         ViewModel.PropertyChanged += OnMainViewModelPropertyChanged;
         LoginRoot.LoginSucceeded += OnLoginSucceeded;
+        App.DeepLinkAuthReceived += OnDeepLinkAuthReceived;
 
         ShowShell(ViewModel.IsLoggedIn);
     }
@@ -242,6 +243,34 @@ public sealed partial class MainWindow : Window
     {
         ViewModel.CheckLoginState();
         ShowShell(true);
+    }
+
+    private void OnDeepLinkAuthReceived(object? sender, DeepLinkAuthArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            try
+            {
+                if (e.IsSuccess)
+                {
+                    var settings = App.Services.Get<SettingsService>();
+                    var api = App.Services.Get<ApiService>();
+                    settings.AuthToken = e.AccessToken;
+                    settings.RefreshToken = e.RefreshToken;
+                    api.SetAuthToken(e.AccessToken);
+                    ViewModel.CheckLoginState();
+                    ShowShell(true);
+                }
+                else
+                {
+                    LoginRoot.ShowError($"فشل تسجيل الدخول: {e.Error}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Fazlaka] Deep link auth handling failed: {ex.Message}");
+            }
+        });
     }
 
     private void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)

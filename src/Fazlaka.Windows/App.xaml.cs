@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Fazlaka.Windows.Services;
 using Microsoft.UI.Xaml;
+using Microsoft.Windows.AppLifecycle;
 
 namespace Fazlaka.Windows;
 
@@ -17,6 +18,8 @@ public partial class App : Application
     private static readonly string LogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Fazlaka", "crash.log");
+
+    public static event EventHandler<DeepLinkAuthArgs>? DeepLinkAuthReceived;
 
     public App()
     {
@@ -44,7 +47,7 @@ public partial class App : Application
         Log("Exception handlers registered");
     }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         Log("OnLaunched START");
         try
@@ -57,6 +60,8 @@ public partial class App : Application
 
             MainWindow.Activate();
             Log("MainWindow activated");
+
+            HandleProtocolActivation();
         }
         catch (Exception ex)
         {
@@ -73,6 +78,51 @@ public partial class App : Application
         Services.Register(() => new AuthService(Services.Get<ApiService>(), Services.Get<SettingsService>()));
         Services.Register(new AudioPlayerService());
         Services.Register(() => new UpdateService(Services.Get<ApiService>()));
+    }
+
+    private static void HandleProtocolActivation()
+    {
+        try
+        {
+            var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+            if (activatedArgs != null && activatedArgs.Kind == ExtendedActivationKind.Protocol)
+            {
+                var protocolData = activatedArgs.Data as global::Windows.ApplicationModel.Activation.ProtocolActivatedEventArgs;
+                if (protocolData?.Uri != null)
+                {
+                    var uri = protocolData.Uri;
+                    Log($"Protocol activated: {uri}");
+
+                    if (uri.Scheme.Equals("fazlaka", StringComparison.OrdinalIgnoreCase) &&
+                        uri.Host.Equals("auth", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                        var accessToken = query["accessToken"];
+                        var refreshToken = query["refreshToken"];
+                        var error = query["error"];
+
+                        if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
+                        {
+                            Log($"Deep link auth success");
+                            DeepLinkAuthReceived?.Invoke(null, new DeepLinkAuthArgs(accessToken, refreshToken));
+                        }
+                        else if (!string.IsNullOrEmpty(error))
+                        {
+                            Log($"Deep link auth error: {error}");
+                            DeepLinkAuthReceived?.Invoke(null, new DeepLinkAuthArgs(error));
+                        }
+                        else
+                        {
+                            Log("Deep link auth: missing tokens and no error");
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"Protocol activation handling failed: {ex.Message}");
+        }
     }
 
     private static void Log(string message)
@@ -179,5 +229,24 @@ public sealed class ServiceContainer
             _factories.Clear();
             _instances.Clear();
         }
+    }
+}
+
+public sealed class DeepLinkAuthArgs
+{
+    public string? AccessToken { get; }
+    public string? RefreshToken { get; }
+    public string? Error { get; }
+    public bool IsSuccess => !string.IsNullOrEmpty(AccessToken) && !string.IsNullOrEmpty(RefreshToken);
+
+    public DeepLinkAuthArgs(string accessToken, string refreshToken)
+    {
+        AccessToken = accessToken;
+        RefreshToken = refreshToken;
+    }
+
+    public DeepLinkAuthArgs(string error)
+    {
+        Error = error;
     }
 }

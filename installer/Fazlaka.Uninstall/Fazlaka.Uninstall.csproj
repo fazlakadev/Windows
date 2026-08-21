@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -6,11 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyName>FazlakaSetup</AssemblyName>
+    <AssemblyName>FazlakaUninstall</AssemblyName>
     <Version>1.1.6</Version>
     <Authors>Fazlaka</Authors>
     <Company>Fazlaka</Company>
-    <Copyright>Copyright (c) 2026 Fazlaka</Copyright>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationManifest>app.manifest</ApplicationManifest>

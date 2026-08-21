@@ -88,6 +88,8 @@ public sealed partial class LoginPage : Page
         _busy = true;
         SubmitButton.IsEnabled = false;
         GoogleButton.IsEnabled = false;
+        GithubButton.IsEnabled = false;
+        FacebookButton.IsEnabled = false;
         BusyPanel.Visibility = Visibility.Visible;
         BusyText.Text = _isRegisterMode ? "جارٍ إنشاء الحساب…" : "جارٍ تسجيل الدخول…";
         HideError();
@@ -141,6 +143,8 @@ public sealed partial class LoginPage : Page
             _busy = false;
             SubmitButton.IsEnabled = true;
             GoogleButton.IsEnabled = true;
+            GithubButton.IsEnabled = true;
+            FacebookButton.IsEnabled = true;
             BusyPanel.Visibility = Visibility.Collapsed;
         }
     }
@@ -151,6 +155,8 @@ public sealed partial class LoginPage : Page
 
         _busy = true;
         GoogleButton.IsEnabled = false;
+        GithubButton.IsEnabled = false;
+        FacebookButton.IsEnabled = false;
         SubmitButton.IsEnabled = false;
         BusyPanel.Visibility = Visibility.Visible;
         BusyText.Text = "بانتظار اكتمال تسجيل الدخول في المتصفح…";
@@ -159,7 +165,6 @@ public sealed partial class LoginPage : Page
         try
         {
             await _authService.SignInAsync();
-            LoginSucceeded?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
@@ -169,12 +174,78 @@ public sealed partial class LoginPage : Page
         {
             _busy = false;
             GoogleButton.IsEnabled = true;
+            GithubButton.IsEnabled = true;
+            FacebookButton.IsEnabled = true;
             SubmitButton.IsEnabled = true;
             BusyPanel.Visibility = Visibility.Collapsed;
         }
     }
 
-    private void ShowError(string message)
+    private async void OnGithubClicked(object sender, RoutedEventArgs e)
+    {
+        if (_busy) return;
+
+        _busy = true;
+        GoogleButton.IsEnabled = false;
+        GithubButton.IsEnabled = false;
+        FacebookButton.IsEnabled = false;
+        SubmitButton.IsEnabled = false;
+        BusyPanel.Visibility = Visibility.Visible;
+        BusyText.Text = "بانتظار اكتمال تسجيل الدخول في المتصفح…";
+        HideError();
+
+        try
+        {
+            await _authService.SignInGithubAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowError(Friendly(ex));
+        }
+        finally
+        {
+            _busy = false;
+            GoogleButton.IsEnabled = true;
+            GithubButton.IsEnabled = true;
+            FacebookButton.IsEnabled = true;
+            SubmitButton.IsEnabled = true;
+            BusyPanel.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private async void OnFacebookClicked(object sender, RoutedEventArgs e)
+    {
+        if (_busy) return;
+
+        _busy = true;
+        GoogleButton.IsEnabled = false;
+        GithubButton.IsEnabled = false;
+        FacebookButton.IsEnabled = false;
+        SubmitButton.IsEnabled = false;
+        BusyPanel.Visibility = Visibility.Visible;
+        BusyText.Text = "بانتظار اكتمال تسجيل الدخول في المتصفح…";
+        HideError();
+
+        try
+        {
+            await _authService.SignInFacebookAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowError(Friendly(ex));
+        }
+        finally
+        {
+            _busy = false;
+            GoogleButton.IsEnabled = true;
+            GithubButton.IsEnabled = true;
+            FacebookButton.IsEnabled = true;
+            SubmitButton.IsEnabled = true;
+            BusyPanel.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    public void ShowError(string message)
     {
         ErrorText.Text = message;
         ErrorPanel.Visibility = Visibility.Visible;
@@ -191,9 +262,22 @@ public sealed partial class LoginPage : Page
     {
         TimeoutException => "انتهت مهلة تسجيل الدخول. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.",
         InvalidOperationException ioe when ioe.Message.Contains("not configured", StringComparison.OrdinalIgnoreCase)
-            => "لم تتم تهيئة تسجيل الدخول عبر Google على هذا الجهاز. أعد تثبيت التحديث بعد ضبط متغيرات OAuth.",
-        InvalidOperationException ioe => ioe.Message,
+            => "لم يتم تهيئة تسجيل الدخول. استخدم البريد الإلكتروني وكلمة المرور.",
+        InvalidOperationException ioe => FriendlyMessage(ioe.Message),
         OperationCanceledException => "تم إلغاء تسجيل الدخول.",
         _ => $"حدث خطأ: {ex.Message}",
     };
+
+    private static string FriendlyMessage(string msg)
+    {
+        if (msg.Contains("google_sign_in_failed", StringComparison.OrdinalIgnoreCase))
+            return "فشل تسجيل الدخول عبر Google. حاول مرة أخرى.";
+        if (msg.Contains("github_sign_in_failed", StringComparison.OrdinalIgnoreCase))
+            return "فشل تسجيل الدخول عبر GitHub. حاول مرة أخرى.";
+        if (msg.Contains("facebook_sign_in_failed", StringComparison.OrdinalIgnoreCase))
+            return "فشل تسجيل الدخول عبر Facebook. حاول مرة أخرى.";
+        if (msg.Contains("not configured", StringComparison.OrdinalIgnoreCase))
+            return "لم يتم تهيئة تسجيل الدخول. استخدم البريد الإلكتروني وكلمة المرور.";
+        return msg;
+    }
 }
