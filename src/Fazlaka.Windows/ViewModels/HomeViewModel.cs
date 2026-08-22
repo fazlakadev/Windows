@@ -1,5 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,8 +35,10 @@ public partial class HomeViewModel : ObservableObject
     private Episode? _featuredEpisode;
 
     public ObservableCollection<Episode> LatestEpisodes { get; } = [];
+    public ObservableCollection<Season> LatestSeasons { get; } = [];
+    public ObservableCollection<Playlist> LatestPlaylists { get; } = [];
 
-    public bool IsEmpty => !IsLoading && !HasError && LatestEpisodes.Count == 0;
+    public bool IsEmpty => !IsLoading && !HasError && LatestEpisodes.Count == 0 && LatestSeasons.Count == 0 && LatestPlaylists.Count == 0;
 
     public HomeViewModel()
     {
@@ -65,23 +69,52 @@ public partial class HomeViewModel : ObservableObject
 
         try
         {
-            var result = await _apiService.GetLatestEpisodesAsync(token);
+            var episodesTask = _apiService.GetLatestEpisodesAsync(token, 12);
+            var seasonsTask = _apiService.GetSeasonsAsync(token, 6);
+            var playlistsTask = _apiService.GetPlaylistsAsync(token, 6);
+
+            await Task.WhenAll(episodesTask, seasonsTask, playlistsTask);
+
+            var episodeResult = await episodesTask;
+            var seasonResult = await seasonsTask;
+            var playlistResult = await playlistsTask;
+
+            Log($"Home episodes: success={episodeResult.Success}, count={episodeResult.Data?.Count ?? 0}, error={episodeResult.Error}");
+            Log($"Home seasons: success={seasonResult.Success}, count={seasonResult.Data?.Count ?? 0}, error={seasonResult.Error}");
+            Log($"Home playlists: success={playlistResult.Success}, count={playlistResult.Data?.Count ?? 0}, error={playlistResult.Error}");
 
             LatestEpisodes.Clear();
-            if (result.Success && result.Data is not null)
+            if (episodeResult.Success && episodeResult.Data is not null)
             {
-                foreach (var episode in result.Data)
+                foreach (var episode in episodeResult.Data)
                 {
                     LatestEpisodes.Add(episode);
                 }
-
                 FeaturedEpisode = LatestEpisodes.FirstOrDefault();
             }
-            else
+
+            LatestSeasons.Clear();
+            if (seasonResult.Success && seasonResult.Data is not null)
             {
-                FeaturedEpisode = null;
+                foreach (var season in seasonResult.Data)
+                {
+                    LatestSeasons.Add(season);
+                }
+            }
+
+            LatestPlaylists.Clear();
+            if (playlistResult.Success && playlistResult.Data is not null)
+            {
+                foreach (var playlist in playlistResult.Data)
+                {
+                    LatestPlaylists.Add(playlist);
+                }
+            }
+
+            if (!episodeResult.Success && !seasonResult.Success && !playlistResult.Success)
+            {
                 HasError = true;
-                ErrorMessage = result.Error ?? result.Message ?? "Unable to load episodes right now.";
+                ErrorMessage = episodeResult.Error ?? episodeResult.Message ?? "Unable to load content right now.";
             }
         }
         catch (OperationCanceledException)
@@ -113,4 +146,22 @@ public partial class HomeViewModel : ObservableObject
 
     [RelayCommand]
     private void PlayFeatured() => PlayEpisode(FeaturedEpisode);
+
+    private static void Log(string message)
+    {
+        try
+        {
+            var logDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Fazlaka");
+            Directory.CreateDirectory(logDir);
+            var logPath = Path.Combine(logDir, "debug.log");
+            var line = $"[{DateTime.Now:HH:mm:ss.fff}] PID={Environment.ProcessId} {message}\n";
+            File.AppendAllText(logPath, line);
+        }
+        catch
+        {
+            // Best effort
+        }
+    }
 }

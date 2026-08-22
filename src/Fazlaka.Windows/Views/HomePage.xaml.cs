@@ -95,11 +95,33 @@ public sealed partial class HomePage : Page
         e.Handled = true;
     }
 
+    private void OnSeasonsWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        var delta = e.GetCurrentPoint(SeasonsScroller).Properties.MouseWheelDelta;
+        SeasonsScroller.ChangeView(SeasonsScroller.HorizontalOffset - delta, null, null);
+        e.Handled = true;
+    }
+
+    private void OnPlaylistsWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        var delta = e.GetCurrentPoint(PlaylistsScroller).Properties.MouseWheelDelta;
+        PlaylistsScroller.ChangeView(PlaylistsScroller.HorizontalOffset - delta, null, null);
+        e.Handled = true;
+    }
+
     private void OnPlayEpisodeClick(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is Episode episode)
         {
             ViewModel.PlayEpisodeCommand.Execute(episode);
+        }
+    }
+
+    private void OnSeasonClick(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is Season season)
+        {
+            MainWindow.Instance?.NavigateToSeason(season.Id);
         }
     }
 }

@@ -234,6 +234,64 @@
 
                     <Border Style="{StaticResource FazlakaCardStyle}" Padding="20,10">
                         <StackPanel FlowDirection="RightToLeft">
+                            <TextBlock Text="الحساب" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource FazlakaTextPrimary}" Margin="0,10,0,6" />
+
+                            <Grid ColumnSpacing="12" Padding="0,10" Tapped="OnEditProfileTapped">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE77B;" FontSize="15" Foreground="{StaticResource FazlakaTextSecondary}" />
+                                    <TextBlock Text="تعديل الملف الشخصي" FontSize="13" Foreground="{StaticResource FazlakaTextPrimary}" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <FontIcon Grid.Column="2" Glyph="&#xE72A;" FontSize="12" Foreground="{StaticResource FazlakaTextSecondary}" VerticalAlignment="Center" />
+                            </Grid>
+                            <Rectangle Height="1" Fill="{StaticResource Hairline}" />
+
+                            <Grid ColumnSpacing="12" Padding="0,10" Tapped="OnChangePasswordTapped">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE8D7;" FontSize="15" Foreground="{StaticResource FazlakaTextSecondary}" />
+                                    <TextBlock Text="تغيير كلمة المرور" FontSize="13" Foreground="{StaticResource FazlakaTextPrimary}" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <FontIcon Grid.Column="2" Glyph="&#xE72A;" FontSize="12" Foreground="{StaticResource FazlakaTextSecondary}" VerticalAlignment="Center" />
+                            </Grid>
+                            <Rectangle Height="1" Fill="{StaticResource Hairline}" />
+
+                            <Grid ColumnSpacing="12" Padding="0,10" Tapped="OnSecurityTapped">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE945;" FontSize="15" Foreground="{StaticResource FazlakaTextSecondary}" />
+                                    <TextBlock Text="الأمان" FontSize="13" Foreground="{StaticResource FazlakaTextPrimary}" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <FontIcon Grid.Column="2" Glyph="&#xE72A;" FontSize="12" Foreground="{StaticResource FazlakaTextSecondary}" VerticalAlignment="Center" />
+                            </Grid>
+                            <Rectangle Height="1" Fill="{StaticResource Hairline}" />
+
+                            <Grid ColumnSpacing="12" Padding="0,10" Tapped="OnSessionsTapped">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                    <FontIcon Glyph="&#xE77B;" FontSize="15" Foreground="{StaticResource FazlakaTextSecondary}" />
+                                    <TextBlock Text="الجلسات النشطة" FontSize="13" Foreground="{StaticResource FazlakaTextPrimary}" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <FontIcon Grid.Column="2" Glyph="&#xE72A;" FontSize="12" Foreground="{StaticResource FazlakaTextSecondary}" VerticalAlignment="Center" />
+                            </Grid>
+                            <Rectangle Height="1" Fill="{StaticResource Hairline}" />
+
                             <TextBlock Text="الإعدادات" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource FazlakaTextPrimary}" Margin="0,10,0,6" />
 
                             <Grid ColumnSpacing="12" Padding="0,10">

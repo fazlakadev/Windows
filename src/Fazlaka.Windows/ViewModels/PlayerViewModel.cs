@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Fazlaka.Windows.Models;
@@ -33,6 +34,15 @@ public partial class PlayerViewModel : ObservableObject
 
     [ObservableProperty]
     private string _durationText = "0:00";
+
+    [ObservableProperty]
+    private double _playbackSpeed = 1.0;
+
+    [ObservableProperty]
+    private double _volume = 1.0;
+
+    [ObservableProperty]
+    private bool _isMuted;
 
     public bool HasEpisode => CurrentEpisode is not null;
 
@@ -110,7 +120,7 @@ public partial class PlayerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void PlayEpisode(Episode? episode)
+    private async void PlayEpisode(Episode? episode)
     {
         if (episode is null || !episode.HasAudio)
         {
@@ -118,6 +128,53 @@ public partial class PlayerViewModel : ObservableObject
         }
 
         _audioPlayer.Play(episode);
+
+        if (episode.Id is not null)
+        {
+            try
+            {
+                var api = App.Services.Get<ApiService>();
+                await api.TrackViewAsync("episode", episode.Id);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Fazlaka] View track failed: {ex.Message}");
+            }
+        }
+    }
+
+    partial void OnPlaybackSpeedChanged(double value) => _audioPlayer.PlaybackSpeed = value;
+
+    partial void OnVolumeChanged(double value)
+    {
+        _audioPlayer.Volume = value;
+        IsMuted = value <= 0;
+    }
+
+    [RelayCommand]
+    private void CycleSpeed()
+    {
+        PlaybackSpeed = PlaybackSpeed switch
+        {
+            0.75 => 1.0,
+            1.0 => 1.25,
+            1.25 => 1.5,
+            1.5 => 2.0,
+            _ => 0.75,
+        };
+    }
+
+    [RelayCommand]
+    private void ToggleMute()
+    {
+        if (IsMuted)
+        {
+            Volume = 1.0;
+        }
+        else
+        {
+            Volume = 0;
+        }
     }
 
     private void OnPlaybackStateChanged(object? sender, EventArgs e)

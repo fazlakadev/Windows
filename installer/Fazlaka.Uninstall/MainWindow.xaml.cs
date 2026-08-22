@@ -104,7 +104,7 @@ public partial class MainWindow : Window
             DetailText.Text = "Removing fazlaka:// protocol...";
             try
             {
-                Registry.ClassesRoot.DeleteSubKeyTree("fazlaka", false);
+                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\fazlaka", false);
             }
             catch { }
             await AnimateProgress(0.95);

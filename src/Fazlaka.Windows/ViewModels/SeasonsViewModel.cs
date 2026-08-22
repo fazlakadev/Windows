@@ -14,7 +14,7 @@ public partial class SeasonsViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
     private readonly AudioPlayerService _audioPlayer;
-    private long _loadedSeasonId;
+    private string? _loadedSeasonId;
 
     [ObservableProperty]
     private ObservableCollection<Season> _seasons = [];
@@ -73,7 +73,7 @@ public partial class SeasonsViewModel : ObservableObject
             if (result.Success && result.Data is not null)
             {
                 Seasons = new ObservableCollection<Season>(
-                    result.Data.OrderBy(static season => season.OrderIndex));
+                    result.Data.OrderBy(static season => season.SortOrder));
                 OnPropertyChanged(nameof(HasNoSeasons));
 
                 if (SelectedSeason is null || !Seasons.Contains(SelectedSeason))
@@ -138,7 +138,7 @@ public partial class SeasonsViewModel : ObservableObject
     {
         if (value is null)
         {
-            _loadedSeasonId = 0;
+            _loadedSeasonId = null;
             Episodes.Clear();
             OnPropertyChanged(nameof(HasNoEpisodes));
             return;
@@ -152,7 +152,7 @@ public partial class SeasonsViewModel : ObservableObject
         _ = LoadEpisodesCoreAsync(value.Id);
     }
 
-    private async Task LoadEpisodesCoreAsync(long seasonId, CancellationToken token = default)
+    private async Task LoadEpisodesCoreAsync(string? seasonId, CancellationToken token = default)
     {
         _loadedSeasonId = seasonId;
         IsLoadingEpisodes = true;

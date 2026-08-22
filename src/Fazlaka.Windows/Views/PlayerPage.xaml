@@ -72,6 +72,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
+                <!-- Cover Art -->
                 <Grid Grid.Column="0" Width="360" Height="360" VerticalAlignment="Center">
                     <Ellipse Width="420" Height="420" Fill="{StaticResource PurpleGlow}" Margin="-30" IsHitTestVisible="False" />
                     <Border
@@ -86,15 +87,16 @@
                             <Rectangle Fill="{StaticResource CoverGradient}" />
                             <FontIcon Glyph="&#xE8D6;" FontSize="88" Foreground="#40FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             <Image
-                                Source="{x:Bind helpers:Ui.ImageFromUrl(Player.CurrentEpisode.CoverUrl)}"
+                                Source="{x:Bind helpers:Ui.ImageFromUrl(Player.CurrentEpisode.CoverImage)}"
                                 Stretch="UniformToFill"
-                                Visibility="{x:Bind helpers:Ui.StringToVisibility(Player.CurrentEpisode.CoverUrl)}" />
+                                Visibility="{x:Bind helpers:Ui.StringToVisibility(Player.CurrentEpisode.CoverImage)}" />
                             <Rectangle Fill="{StaticResource SheenBrush}" IsHitTestVisible="False" />
                         </Grid>
                     </Border>
                     <Ellipse Width="16" Height="16" Fill="{StaticResource FazlakaSecondary}" Stroke="#0B0F19" StrokeThickness="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,26,26,0" IsHitTestVisible="False" />
                 </Grid>
 
+                <!-- Controls Panel -->
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="14" FlowDirection="RightToLeft">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <Border Background="{StaticResource ChipBg}" CornerRadius="999" Padding="10,4" Visibility="{x:Bind helpers:Ui.StringToVisibility(Player.CurrentEpisode.SeasonTitle)}">
@@ -108,9 +110,16 @@
                         </Border>
                         <Border Background="#161F2F" CornerRadius="999" Padding="10,4">
                             <TextBlock FontSize="11" Foreground="{StaticResource FazlakaTextSecondary}">
-                                <Run Text="{x:Bind helpers:Ui.FormatCount(Player.CurrentEpisode.ViewCount)}" /><Run Text=" مشاهدة" />
+                                <Run Text="{x:Bind helpers:Ui.FormatCount(Player.CurrentEpisode.ViewsCount)}" /><Run Text=" مشاهدة" />
                             </TextBlock>
                         </Border>
+                        <Button x:Name="LikeButton" Width="32" Height="32" CornerRadius="16" Padding="0" Style="{StaticResource CircleGhostButton}" Click="OnLikeClicked" ToolTipService.ToolTip="إعجاب">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14FFFFFF" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#22FFFFFF" />
+                            </Button.Resources>
+                            <FontIcon x:Name="LikeIcon" Glyph="&#xE768;" FontSize="14" Foreground="{StaticResource FazlakaTextSecondary}" />
+                        </Button>
                     </StackPanel>
 
                     <TextBlock
@@ -140,6 +149,7 @@
                         TextTrimming="CharacterEllipsis"
                         Visibility="{x:Bind helpers:Ui.StringToVisibility(Player.CurrentEpisode.Description)}" />
 
+                    <!-- Seek Slider -->
                     <StackPanel Spacing="2" Margin="0,10,0,0">
                         <Slider
                             x:Name="SeekSlider"
@@ -168,6 +178,7 @@
                         </Grid>
                     </StackPanel>
 
+                    <!-- Playback Controls -->
                     <StackPanel Orientation="Horizontal" Spacing="18" HorizontalAlignment="Center" Margin="0,12,0,0" FlowDirection="LeftToRight">
                         <Button
                             Width="46" Height="46"
@@ -248,13 +259,79 @@
                         </Button>
                     </StackPanel>
 
-                    <TextBlock
-                        x:Name="QueueLabel"
-                        FontSize="11"
-                        Foreground="{StaticResource FazlakaTextSecondary}"
-                        HorizontalAlignment="Center"
-                        Margin="0,6,0,0"
-                        Opacity="0.85" />
+                    <!-- Speed + Volume Controls -->
+                    <Grid Margin="0,8,0,0" FlowDirection="LeftToRight">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Speed Button -->
+                        <Button
+                            Grid.Column="0"
+                            Height="32"
+                            Padding="12,0"
+                            CornerRadius="16"
+                            Style="{StaticResource FazlakaTransparentButtonStyle}"
+                            Command="{x:Bind Player.CycleSpeedCommand}"
+                            VerticalAlignment="Center">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14FFFFFF" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#22FFFFFF" />
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <FontIcon Glyph="&#xE76F;" FontSize="12" Foreground="{StaticResource FazlakaTextSecondary}" />
+                                <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource FazlakaTextSecondary}" VerticalAlignment="Center">
+                                    <Run Text="{x:Bind Player.PlaybackSpeed, Mode=OneWay}" /><Run Text="x" />
+                                </TextBlock>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Queue Label -->
+                        <TextBlock
+                            x:Name="QueueLabel"
+                            Grid.Column="1"
+                            FontSize="11"
+                            Foreground="{StaticResource FazlakaTextSecondary}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Opacity="0.85" />
+
+                        <!-- Volume -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Button
+                                Width="32" Height="32"
+                                Padding="0"
+                                CornerRadius="16"
+                                Style="{StaticResource FazlakaTransparentButtonStyle}"
+                                Command="{x:Bind Player.ToggleMuteCommand}">
+                                <Button.Resources>
+                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14FFFFFF" />
+                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#22FFFFFF" />
+                                </Button.Resources>
+                                <FontIcon Glyph="&#xE767;" FontSize="13" Foreground="{StaticResource FazlakaTextSecondary}" />
+                            </Button>
+                            <Slider
+                                Width="100"
+                                Minimum="0"
+                                Maximum="1"
+                                Value="{x:Bind Player.Volume, Mode=TwoWay}"
+                                FlowDirection="LeftToRight"
+                                IsThumbToolTipEnabled="False"
+                                VerticalAlignment="Center">
+                                <Slider.Resources>
+                                    <SolidColorBrush x:Key="SliderTrackValueForeground" Color="#8B5CF6" />
+                                    <SolidColorBrush x:Key="SliderTrackValueForegroundPointerOver" Color="#A78BFA" />
+                                    <SolidColorBrush x:Key="SliderTrackValueForegroundPressed" Color="#7C3AED" />
+                                    <SolidColorBrush x:Key="SliderTrackBackground" Color="#18FFFFFF" />
+                                    <SolidColorBrush x:Key="SliderThumbBackground" Color="#CCC" />
+                                    <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FFF" />
+                                    <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#E5E7EB" />
+                                </Slider.Resources>
+                            </Slider>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Grid>
         </ScrollViewer>

@@ -41,6 +41,10 @@
                 <TextBlock Text="فذلكة" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource FazlakaTextPrimary}" VerticalAlignment="Center" />
                 <TextBlock Text="استوديو الحلقات الصوتية" FontSize="11" Foreground="{StaticResource FazlakaTextSecondary}" VerticalAlignment="Center" Margin="4,3,0,0" />
             </StackPanel>
+            <StackPanel x:Name="NetworkStatus" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0">
+                <Ellipse x:Name="NetworkDot" Width="8" Height="8" Fill="{StaticResource FazlakaSuccess}" />
+                <TextBlock x:Name="NetworkLabel" Text="متصل" FontSize="11" Foreground="{StaticResource FazlakaTextSecondary}" VerticalAlignment="Center" />
+            </StackPanel>
         </Grid>
 
         <Grid x:Name="ShellRoot" Grid.Row="1">
@@ -86,6 +90,26 @@
                     <muxc:NavigationViewItem Tag="seasons" Content="المواسم" ToolTipService.ToolTip="المواسم">
                         <muxc:NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE8D6;" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
+                    <muxc:NavigationViewItem Tag="playlists" Content="قوائم التشغيل" ToolTipService.ToolTip="قوائم التشغيل">
+                        <muxc:NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE8B1;" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
+                    <muxc:NavigationViewItem Tag="articles" Content="المقالات" ToolTipService.ToolTip="المقالات">
+                        <muxc:NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE8A5;" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
+                    <muxc:NavigationViewItem Tag="history" Content="السجل" ToolTipService.ToolTip="سجل المشاهدات">
+                        <muxc:NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE81C;" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
+                    <muxc:NavigationViewItem Tag="likes" Content="المفضلة" ToolTipService.ToolTip="المفضلة">
+                        <muxc:NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE768;" />
                         </muxc:NavigationViewItem.Icon>
                     </muxc:NavigationViewItem>
                 </muxc:NavigationView.MenuItems>
@@ -157,9 +181,9 @@
                                 <Rectangle Fill="{StaticResource CoverGradient}" />
                                 <FontIcon Glyph="&#xE8D6;" FontSize="20" Foreground="#E9E2FF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 <Image
-                                    Source="{x:Bind views:Ui.ImageFromUrl(Player.CurrentEpisode.CoverUrl)}"
+                                    Source="{x:Bind views:Ui.ImageFromUrl(Player.CurrentEpisode.CoverImage)}"
                                     Stretch="UniformToFill"
-                                    Visibility="{x:Bind views:Ui.StringToVisibility(Player.CurrentEpisode.CoverUrl)}" />
+                                    Visibility="{x:Bind views:Ui.StringToVisibility(Player.CurrentEpisode.CoverImage)}" />
                             </Grid>
                         </Border>
 
@@ -232,5 +256,7 @@
         </Grid>
 
         <views:LoginPage x:Name="LoginRoot" Grid.Row="1" Visibility="Collapsed" />
+
+        <views:LockPage x:Name="LockRoot" Grid.Row="1" Visibility="Collapsed" />
     </Grid>
 </Window>

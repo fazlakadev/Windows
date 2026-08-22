@@ -1,11 +1,13 @@
 using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using Fazlaka.Windows.Services;
 using Fazlaka.Windows.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using VirtualKey = Windows.System.VirtualKey;
 
@@ -133,6 +135,27 @@ public sealed partial class PlayerPage : Page
                 e.Handled = true;
                 break;
         }
+    }
+
+    private bool _isLiked;
+
+    private async void OnLikeClicked(object sender, RoutedEventArgs e)
+    {
+        var ep = Player.CurrentEpisode;
+        if (ep is null || ep.Id is null) return;
+
+        _isLiked = !_isLiked;
+        LikeIcon.Glyph = _isLiked ? "\uE769" : "\uE768";
+        LikeIcon.Foreground = _isLiked
+            ? new SolidColorBrush(Microsoft.UI.Colors.Red)
+            : (Brush)Resources["FazlakaTextSecondary"];
+
+        try
+        {
+            var api = App.Services.Get<ApiService>();
+            await api.ToggleLikeAsync("episode", ep.Id);
+        }
+        catch { }
     }
 
     private void Close()

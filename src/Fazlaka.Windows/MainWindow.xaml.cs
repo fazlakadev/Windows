@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.Graphics;
+using Colors = Microsoft.UI.Colors;
 
 namespace Fazlaka.Windows;
 
@@ -22,6 +23,10 @@ public sealed partial class MainWindow : Window
         ["home"] = typeof(HomePage),
         ["search"] = typeof(SearchPage),
         ["seasons"] = typeof(SeasonsPage),
+        ["playlists"] = typeof(PlaylistsPage),
+        ["articles"] = typeof(ArticlesPage),
+        ["history"] = typeof(HistoryPage),
+        ["likes"] = typeof(LikesPage),
         ["profile"] = typeof(ProfilePage),
     };
 
@@ -30,12 +35,18 @@ public sealed partial class MainWindow : Window
         [typeof(HomePage)] = "home",
         [typeof(SearchPage)] = "search",
         [typeof(SeasonsPage)] = "seasons",
+        [typeof(PlaylistsPage)] = "playlists",
+        [typeof(ArticlesPage)] = "articles",
+        [typeof(HistoryPage)] = "history",
+        [typeof(LikesPage)] = "likes",
         [typeof(ProfilePage)] = "profile",
     };
 
     private readonly bool _initialized;
     private bool _syncingSelection;
     private ProfilePage? _hookedProfilePage;
+
+    public static MainWindow? Instance { get; private set; }
 
     public MainViewModel ViewModel { get; }
 
@@ -45,6 +56,7 @@ public sealed partial class MainWindow : Window
 
     public MainWindow()
     {
+        Instance = this;
         ViewModel = new MainViewModel();
         Player = new PlayerViewModel();
         ViewModel.CheckLoginState();
@@ -66,6 +78,8 @@ public sealed partial class MainWindow : Window
         App.DeepLinkAuthReceived += OnDeepLinkAuthReceived;
 
         ShowShell(ViewModel.IsLoggedIn);
+        InitNetworkMonitor();
+        ShowLockIfNeeded();
     }
 
     private void ConfigureWindowChrome()
@@ -320,5 +334,66 @@ public sealed partial class MainWindow : Window
         {
             ContentFrame.Navigate(typeof(PlayerPage));
         }
+    }
+
+    public void NavigateToSeason(string? seasonId)
+    {
+        NavigateToRoute("seasons");
+        if (ContentFrame.Content is SeasonsPage seasonsPage)
+        {
+            seasonsPage.SelectSeasonById(seasonId);
+        }
+    }
+
+    public void NavigateToSubPage(Type pageType)
+    {
+        if (_initialized)
+        {
+            ContentFrame.Navigate(pageType);
+        }
+    }
+
+    private void InitNetworkMonitor()
+    {
+        try
+        {
+            var monitor = App.Services.Get<Services.NetworkMonitorService>();
+            UpdateNetworkStatus(monitor.IsConnected);
+            monitor.ConnectivityChanged += (_, connected) =>
+            {
+                DispatcherQueue.TryEnqueue(() => UpdateNetworkStatus(connected));
+            };
+        }
+        catch { }
+    }
+
+    private void UpdateNetworkStatus(bool connected)
+    {
+        NetworkDot.Fill = connected
+            ? new Microsoft.UI.Xaml.Media.SolidColorBrush(global::Windows.UI.Color.FromArgb(255, 34, 197, 94))
+            : new Microsoft.UI.Xaml.Media.SolidColorBrush(global::Windows.UI.Color.FromArgb(255, 239, 68, 68));
+        NetworkLabel.Text = connected ? "متصل" : "غير متصل";
+    }
+
+    private void ShowLockIfNeeded()
+    {
+        try
+        {
+            var security = App.Services.Get<Services.SecurityService>();
+            if (ViewModel.IsLoggedIn && security.ShouldLockOnStart())
+            {
+                ShellRoot.Visibility = Visibility.Collapsed;
+                LockRoot.Visibility = Visibility.Visible;
+                LockRoot.Unlocked += OnLockUnlocked;
+            }
+        }
+        catch { }
+    }
+
+    private void OnLockUnlocked(object? sender, EventArgs e)
+    {
+        LockRoot.Unlocked -= OnLockUnlocked;
+        LockRoot.Visibility = Visibility.Collapsed;
+        ShellRoot.Visibility = Visibility.Visible;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Windows.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -82,4 +83,33 @@ public static class Ui
 
         return count.ToString(CultureInfo.InvariantCulture);
     }
+
+    public static string PinStatusText(bool enabled) => enabled ? "القفل مفعّل — ستحتاج الرمز عند فتح التطبيق." : "القفل معطّل.";
+
+    public static string TwoFaStatusText(bool enabled) => enabled ? "المصادقة الثنائية مفعّلة." : "المصادقة الثنائية معطّلة.";
+
+    public static ICommand RevokeCommand(object? command, object? tag)
+        => new RevokeProxyCommand(command, tag);
+}
+
+internal sealed class RevokeProxyCommand : ICommand
+{
+    private readonly ICommand? _inner;
+    private readonly object? _session;
+
+    public RevokeProxyCommand(object? inner, object? session)
+    {
+        _inner = inner as ICommand;
+        _session = session;
+    }
+
+    public event EventHandler? CanExecuteChanged
+    {
+        add => _inner?.CanExecuteChanged += value;
+        remove => _inner?.CanExecuteChanged -= value;
+    }
+
+    public bool CanExecute(object? parameter) => _inner?.CanExecute(_session) ?? false;
+
+    public void Execute(object? parameter) => _inner?.Execute(_session);
 }

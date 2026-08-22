@@ -41,26 +41,30 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0" Width="58" Height="58" CornerRadius="12">
-                        <Grid>
-                            <Rectangle Fill="{StaticResource CoverGradient}" />
-                            <FontIcon Glyph="&#xE8D6;" FontSize="22" Foreground="#66E9E2FF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            <Image
-                                Source="{x:Bind helpers:Ui.ImageFromUrl(CoverUrl)}"
-                                Stretch="UniformToFill"
-                                Visibility="{x:Bind helpers:Ui.StringToVisibility(CoverUrl)}" />
-                            <Border
-                                Width="18" Height="18"
-                                CornerRadius="9"
-                                Background="#10B981"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Top"
-                                Margin="0,3,3,0"
-                                Visibility="{x:Bind helpers:Ui.ToVisibility(IsPlayed)}">
-                                <FontIcon Glyph="&#xE73E;" FontSize="9" Foreground="White" />
-                            </Border>
-                        </Grid>
-                    </Border>
+                    <Grid Grid.Column="0" Width="58" Height="58">
+                        <Border Grid.Column="0" Width="58" Height="58" CornerRadius="12">
+                            <Grid>
+                                <Rectangle Fill="{StaticResource CoverGradient}" />
+                                <FontIcon Glyph="&#xE8D6;" FontSize="22" Foreground="#66E9E2FF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Image
+                                    Source="{x:Bind helpers:Ui.ImageFromUrl(CoverImage)}"
+                                    Stretch="UniformToFill"
+                                    Visibility="{x:Bind helpers:Ui.StringToVisibility(CoverImage)}" />
+                            </Grid>
+                        </Border>
+                        <Border
+                            Width="20" Height="20"
+                            CornerRadius="10"
+                            Background="#AA7C3AED"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Margin="0,-4,-4,0"
+                            Padding="0">
+                            <TextBlock FontSize="9" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Run Text="{x:Bind EpisodeNumber}" />
+                            </TextBlock>
+                        </Border>
+                    </Grid>
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3" FlowDirection="RightToLeft">
                         <TextBlock
@@ -85,7 +89,7 @@
                             </Border>
                             <Border Background="#161F2F" CornerRadius="999" Padding="8,2">
                                 <TextBlock FontSize="10.5" Foreground="{StaticResource FazlakaTextSecondary}">
-                                    <Run Text="{x:Bind helpers:Ui.FormatCount(ViewCount)}" /><Run Text=" مشاهدة" />
+                                    <Run Text="{x:Bind helpers:Ui.FormatCount(ViewsCount)}" /><Run Text=" مشاهدة" />
                                 </TextBlock>
                             </Border>
                         </StackPanel>

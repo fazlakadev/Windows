@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Fazlaka.Windows.Services;
 using Microsoft.UI.Xaml;
@@ -18,7 +19,15 @@ public partial class App : Application
 
     private static readonly string LogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Fazlaka", "crash.log");
+        "Fazlaka", "debug.log");
+
+    private static readonly string PendingAuthPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Fazlaka", "pending-auth.txt");
+
+    private static AppInstance? _mainInstance;
+    private static Mutex? _mutex;
+    private static FileSystemWatcher? _authWatcher;
 
     public static event EventHandler<DeepLinkAuthArgs>? DeepLinkAuthReceived;
 
@@ -28,7 +37,8 @@ public partial class App : Application
         {
             var dir = Path.GetDirectoryName(LogPath);
             if (dir != null) Directory.CreateDirectory(dir);
-            File.WriteAllText(LogPath, $"[{DateTime.Now}] App() ctor start\n");
+            var pid = Environment.ProcessId;
+            File.AppendAllText(LogPath, $"\n=== New instance PID={pid} [{DateTime.Now}] ===\n");
         }
         catch { }
 
@@ -53,6 +63,60 @@ public partial class App : Application
         Log("OnLaunched START");
         try
         {
+            bool createdNew;
+            _mutex = new Mutex(true, "Global\\FazlakaDesktopApp", out createdNew);
+
+            if (!createdNew)
+            {
+                Log("Another instance is running — forwarding deep link");
+                var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+                Log($"Activation kind: {activatedArgs.Kind}");
+
+                Uri? deepLinkUri = null;
+
+                if (activatedArgs.Kind == ExtendedActivationKind.Protocol)
+                {
+                    var proto = activatedArgs.Data as global::Windows.ApplicationModel.Activation.ProtocolActivatedEventArgs;
+                    Log($"Protocol URI: {proto?.Uri}");
+                    deepLinkUri = proto?.Uri;
+                }
+
+                if (deepLinkUri == null)
+                {
+                    var cliArgs = Environment.GetCommandLineArgs();
+                    foreach (var a in cliArgs)
+                    {
+                        Log($"CLI arg: {a}");
+                        if (a.StartsWith("fazlaka://", StringComparison.OrdinalIgnoreCase))
+                        {
+                            deepLinkUri = new Uri(a);
+                            break;
+                        }
+                    }
+                }
+
+                if (deepLinkUri != null &&
+                    deepLinkUri.Scheme.Equals("fazlaka", StringComparison.OrdinalIgnoreCase) &&
+                    deepLinkUri.Host.Equals("auth", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        File.WriteAllText(PendingAuthPath, deepLinkUri.ToString());
+                        Log($"Written to {PendingAuthPath}: {deepLinkUri}");
+                    }
+                    catch (Exception ex) { Log($"Failed to write pending auth: {ex.Message}"); }
+                }
+                else
+                {
+                    Log($"No valid deep link found (uri={deepLinkUri})");
+                }
+
+                Environment.Exit(0);
+                return;
+            }
+
+            _mainInstance = AppInstance.FindOrRegisterForKey("main");
+
             ConfigureServices();
             Log("Services configured");
 
@@ -63,7 +127,42 @@ public partial class App : Application
             Log("MainWindow activated");
 
             RegisterProtocol();
-            HandleProtocolActivation();
+            StartAuthWatcher();
+
+            DeletePendingAuthFile();
+
+            var launchArgs = _mainInstance.GetActivatedEventArgs();
+            Log($"Launch activation kind: {launchArgs.Kind}");
+
+            Uri? initialDeepLink = null;
+
+            if (launchArgs.Kind == ExtendedActivationKind.Protocol)
+            {
+                var proto = launchArgs.Data as global::Windows.ApplicationModel.Activation.ProtocolActivatedEventArgs;
+                initialDeepLink = proto?.Uri;
+            }
+
+            if (initialDeepLink == null)
+            {
+                var cliArgs = Environment.GetCommandLineArgs();
+                foreach (var arg in cliArgs)
+                {
+                    Log($"CLI arg: {arg}");
+                    if (arg.StartsWith("fazlaka://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        initialDeepLink = new Uri(arg);
+                        break;
+                    }
+                }
+            }
+
+            if (initialDeepLink != null &&
+                initialDeepLink.Scheme.Equals("fazlaka", StringComparison.OrdinalIgnoreCase) &&
+                initialDeepLink.Host.Equals("auth", StringComparison.OrdinalIgnoreCase))
+            {
+                Log($"App launched via deep link: {initialDeepLink}");
+                ProcessDeepLinkUri(initialDeepLink);
+            }
         }
         catch (Exception ex)
         {
@@ -80,51 +179,131 @@ public partial class App : Application
         Services.Register(() => new AuthService(Services.Get<ApiService>(), Services.Get<SettingsService>()));
         Services.Register(new AudioPlayerService());
         Services.Register(() => new UpdateService(Services.Get<ApiService>()));
+        Services.Register(() => new ViewModels.PlaylistsViewModel());
+        Services.Register(() => new ViewModels.ArticlesViewModel());
+        Services.Register(new NetworkMonitorService());
+        Services.Register(() => new SecurityService(Services.Get<SettingsService>()));
     }
 
-    private static void HandleProtocolActivation()
+    private static void HandleProtocolActivation(AppActivationArguments? activatedArgs = null)
     {
         try
         {
-            var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
-            if (activatedArgs != null && activatedArgs.Kind == ExtendedActivationKind.Protocol)
+            var args = activatedArgs ?? _mainInstance?.GetActivatedEventArgs();
+            if (args == null || args.Kind != ExtendedActivationKind.Protocol) return;
+
+            var protocolData = args.Data as global::Windows.ApplicationModel.Activation.ProtocolActivatedEventArgs;
+            if (protocolData?.Uri == null) return;
+
+            var uri = protocolData.Uri;
+            Log($"Protocol activated: {uri}");
+
+            if (uri.Scheme.Equals("fazlaka", StringComparison.OrdinalIgnoreCase) &&
+                uri.Host.Equals("auth", StringComparison.OrdinalIgnoreCase))
             {
-                var protocolData = activatedArgs.Data as global::Windows.ApplicationModel.Activation.ProtocolActivatedEventArgs;
-                if (protocolData?.Uri != null)
-                {
-                    var uri = protocolData.Uri;
-                    Log($"Protocol activated: {uri}");
-
-                    if (uri.Scheme.Equals("fazlaka", StringComparison.OrdinalIgnoreCase) &&
-                        uri.Host.Equals("auth", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                        var accessToken = query["accessToken"];
-                        var refreshToken = query["refreshToken"];
-                        var error = query["error"];
-
-                        if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
-                        {
-                            Log($"Deep link auth success");
-                            DeepLinkAuthReceived?.Invoke(null, new DeepLinkAuthArgs(accessToken, refreshToken));
-                        }
-                        else if (!string.IsNullOrEmpty(error))
-                        {
-                            Log($"Deep link auth error: {error}");
-                            DeepLinkAuthReceived?.Invoke(null, new DeepLinkAuthArgs(error));
-                        }
-                        else
-                        {
-                            Log("Deep link auth: missing tokens and no error");
-                        }
-                    }
-                }
+                ProcessDeepLinkUri(uri);
             }
         }
         catch (Exception ex)
         {
             Log($"Protocol activation handling failed: {ex.Message}");
         }
+    }
+
+    private static void ProcessDeepLinkUri(Uri uri)
+    {
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var accessToken = query["accessToken"];
+        var refreshToken = query["refreshToken"];
+        var error = query["error"];
+
+        if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
+        {
+            Log("Deep link auth success");
+            MainWindow?.DispatcherQueue.TryEnqueue(() =>
+            {
+                DeepLinkAuthReceived?.Invoke(null, new DeepLinkAuthArgs(accessToken, refreshToken));
+            });
+        }
+        else if (!string.IsNullOrEmpty(error))
+        {
+            Log($"Deep link auth error: {error}");
+            MainWindow?.DispatcherQueue.TryEnqueue(() =>
+            {
+                DeepLinkAuthReceived?.Invoke(null, new DeepLinkAuthArgs(error));
+            });
+        }
+        else
+        {
+            Log("Deep link auth: missing tokens and no error");
+        }
+    }
+
+    private static void StartAuthWatcher()
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(PendingAuthPath);
+            if (dir == null) return;
+            Directory.CreateDirectory(dir);
+
+            DeletePendingAuthFile();
+
+            _authWatcher = new FileSystemWatcher(dir, "pending-auth.txt");
+            _authWatcher.Created += OnPendingAuthFile;
+            _authWatcher.Changed += OnPendingAuthFile;
+            _authWatcher.EnableRaisingEvents = true;
+            Log("Auth file watcher started");
+        }
+        catch (Exception ex)
+        {
+            Log($"Auth watcher failed: {ex.Message}");
+        }
+    }
+
+    private static void OnPendingAuthFile(object sender, FileSystemEventArgs e)
+    {
+        try
+        {
+            Log($"File watcher triggered: {e.ChangeType} {e.FullPath}");
+            Thread.Sleep(300);
+            if (!File.Exists(PendingAuthPath))
+            {
+                Log("pending-auth.txt not found after trigger");
+                return;
+            }
+
+            var uriString = File.ReadAllText(PendingAuthPath).Trim();
+            Log($"Read URI: {uriString}");
+            try { File.Delete(PendingAuthPath); } catch { }
+
+            if (string.IsNullOrEmpty(uriString))
+            {
+                Log("URI is empty");
+                return;
+            }
+
+            var uri = new Uri(uriString);
+            if (uri.Scheme.Equals("fazlaka", StringComparison.OrdinalIgnoreCase) &&
+                uri.Host.Equals("auth", StringComparison.OrdinalIgnoreCase))
+            {
+                Log("Calling ProcessDeepLinkUri from watcher");
+                ProcessDeepLinkUri(uri);
+            }
+            else
+            {
+                Log($"Wrong scheme/host: {uri.Scheme}/{uri.Host}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"Pending auth file processing FAILED: {ex}");
+        }
+    }
+
+    private static void DeletePendingAuthFile()
+    {
+        try { if (File.Exists(PendingAuthPath)) File.Delete(PendingAuthPath); } catch { }
     }
 
     private static void RegisterProtocol()
@@ -134,14 +313,14 @@ public partial class App : Application
             var exe = Process.GetCurrentProcess().MainModule?.FileName;
             if (string.IsNullOrEmpty(exe)) return;
 
-            using var root = Registry.ClassesRoot.CreateSubKey("fazlaka");
-            root.SetValue("", "URL:Fazlaka Protocol");
-            root.SetValue("URL Protocol", "");
+            using var key = Registry.CurrentUser.CreateSubKey(@"Software\Classes\fazlaka");
+            key.SetValue("", "URL:Fazlaka Protocol");
+            key.SetValue("URL Protocol", "");
 
-            using var shell = root.CreateSubKey("shell\\open\\command");
+            using var shell = key.CreateSubKey("shell\\open\\command");
             shell.SetValue("", $"\"{exe}\" \"%1\"");
         }
-        catch { }
+        catch (Exception ex) { Log($"RegisterProtocol failed: {ex.Message}"); }
     }
 
     private static void Log(string message)

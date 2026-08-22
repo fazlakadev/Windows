@@ -325,7 +325,7 @@ public partial class MainWindow : Window
         {
             var exe = Path.Combine(_installPath, "Fazlaka.exe");
 
-            using var root = Registry.ClassesRoot.CreateSubKey("fazlaka");
+            using var root = Registry.CurrentUser.CreateSubKey(@"Software\Classes\fazlaka");
             root.SetValue("", "URL:Fazlaka Protocol");
             root.SetValue("URL Protocol", "");
 
@@ -339,7 +339,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            Registry.ClassesRoot.DeleteSubKeyTree("fazlaka", false);
+            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\fazlaka", false);
         }
         catch { }
     }

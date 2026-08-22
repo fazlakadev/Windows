@@ -1,0 +1,58 @@
+<Page
+    x:Class="Fazlaka.Windows.Views.ChangeEmailPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:Fazlaka.Windows.Views"
+    x:DefaultBindMode="OneWay">
+
+    <Page.Resources>
+        <LinearGradientBrush x:Key="PageBackdrop" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Offset="0" Color="#F20B0F19" />
+            <GradientStop Offset="1" Color="#C2151B2B" />
+        </LinearGradientBrush>
+    </Page.Resources>
+
+    <Grid Background="{StaticResource PageBackdrop}">
+        <Grid.Transitions>
+            <TransitionCollection>
+                <EntranceThemeTransition FromVerticalOffset="24" />
+            </TransitionCollection>
+        </Grid.Transitions>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="520" HorizontalAlignment="Center" Margin="36,24,36,40" Spacing="16" FlowDirection="RightToLeft">
+                <TextBlock Text="تغيير البريد الإلكتروني" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="28" FontWeight="Bold" Foreground="{StaticResource FazlakaTextPrimary}" />
+
+                <TextBlock Text="{x:Bind Vm.SuccessMessage}" FontSize="13" Foreground="{StaticResource FazlakaSuccess}" Visibility="{x:Bind helpers:Ui.InfoStatusVisibility(Vm.HasSuccessMessage, Vm.SuccessMessage)}" />
+                <TextBlock Text="{x:Bind Vm.ErrorMessage}" FontSize="13" Foreground="{StaticResource FazlakaError}" Visibility="{x:Bind helpers:Ui.ErrorStatusVisibility(Vm.HasError, Vm.ErrorMessage)}" />
+
+                <Border Background="#0DFFFFFF" CornerRadius="14" Padding="20">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="البريد الإلكتروني الجديد" FontSize="13" Foreground="{StaticResource FazlakaTextSecondary}" />
+                        <TextBox Text="{x:Bind Vm.NewEmail, Mode=TwoWay}" PlaceholderText="email@example.com" />
+
+                        <Button Style="{StaticResource FazlakaGradientButtonStyle}" Command="{x:Bind Vm.RequestOtpCommand}" IsEnabled="{x:Bind helpers:Ui.ToEnabled(Vm.IsLoading)}">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#7C3AED" />
+                            </Button.Resources>
+                            <TextBlock Text="إرسال رمز التحقق" />
+                        </Button>
+
+                        <StackPanel Visibility="{x:Bind helpers:Ui.ToVisibility(Vm.IsOtpSent)}" Spacing="14">
+                            <Rectangle Height="1" Fill="{StaticResource FazlakaTextSecondary}" Opacity="0.15" />
+                            <TextBlock Text="رمز التحقق" FontSize="13" Foreground="{StaticResource FazlakaTextSecondary}" />
+                            <TextBox Text="{x:Bind Vm.OtpCode, Mode=TwoWay}" PlaceholderText="أدخل الرمز" MaxLength="8" />
+
+                            <Button Style="{StaticResource FazlakaGradientButtonStyle}" Command="{x:Bind Vm.ConfirmChangeCommand}" IsEnabled="{x:Bind helpers:Ui.ToEnabled(Vm.IsLoading)}">
+                                <Button.Resources>
+                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#7C3AED" />
+                                </Button.Resources>
+                                <TextBlock Text="تأكيد التغيير" />
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

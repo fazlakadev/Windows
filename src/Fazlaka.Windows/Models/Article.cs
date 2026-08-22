@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Fazlaka.Windows.Models;
 
-public class Season
+public class Article
 {
     [JsonPropertyName("id")]
     public string? Id { get; set; }
@@ -19,17 +19,17 @@ public class Season
     [JsonPropertyName("published")]
     public bool Published { get; set; }
 
-    [JsonPropertyName("sortOrder")]
-    public int SortOrder { get; set; }
-
     [JsonPropertyName("publishedAt")]
     public string? PublishedAt { get; set; }
+
+    [JsonPropertyName("seasonId")]
+    public string? SeasonId { get; set; }
 
     [JsonPropertyName("translations")]
     public List<Translation> Translations { get; set; } = [];
 
-    [JsonPropertyName("episodes")]
-    public List<Episode>? Episodes { get; set; }
+    [JsonPropertyName("season")]
+    public EpisodeSeason? Season { get; set; }
 
     [JsonIgnore]
     public string Title => GetTranslation("title");
@@ -38,16 +38,13 @@ public class Season
     public string Description => GetTranslation("description");
 
     [JsonIgnore]
+    public string Excerpt => GetTranslation("excerpt");
+
+    [JsonIgnore]
     public bool HasCover => !string.IsNullOrWhiteSpace(CoverImage);
 
     [JsonIgnore]
-    public bool HasEpisodes => Episodes is { Count: > 0 };
-
-    [JsonIgnore]
-    public int EpisodeCount => Episodes?.Count ?? 0;
-
-    [JsonIgnore]
-    public string EpisodesDisplay => $"{EpisodeCount} episode{(EpisodeCount == 1 ? string.Empty : "s")}";
+    public string SeasonTitle => Season?.Title ?? string.Empty;
 
     [JsonIgnore]
     public string PublishedDisplay
@@ -70,6 +67,7 @@ public class Season
         {
             "title" => t.Title ?? string.Empty,
             "description" => t.Description ?? string.Empty,
+            "excerpt" => t.Description ?? string.Empty,
             _ => string.Empty
         };
     }

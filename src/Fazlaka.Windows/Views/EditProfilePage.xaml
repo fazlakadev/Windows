@@ -1,0 +1,61 @@
+<Page
+    x:Class="Fazlaka.Windows.Views.EditProfilePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:Fazlaka.Windows.Views"
+    x:DefaultBindMode="OneWay">
+
+    <Page.Resources>
+        <LinearGradientBrush x:Key="PageBackdrop" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Offset="0" Color="#F20B0F19" />
+            <GradientStop Offset="1" Color="#C2151B2B" />
+        </LinearGradientBrush>
+    </Page.Resources>
+
+    <Grid Background="{StaticResource PageBackdrop}">
+        <Grid.Transitions>
+            <TransitionCollection>
+                <EntranceThemeTransition FromVerticalOffset="24" />
+            </TransitionCollection>
+        </Grid.Transitions>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="520" HorizontalAlignment="Center" Margin="36,24,36,40" Spacing="16" FlowDirection="RightToLeft">
+                <TextBlock Text="تعديل الملف الشخصي" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="28" FontWeight="Bold" Foreground="{StaticResource FazlakaTextPrimary}" />
+
+                <TextBlock Text="{x:Bind Vm.SuccessMessage}" FontSize="13" Foreground="{StaticResource FazlakaSuccess}" Visibility="{x:Bind helpers:Ui.InfoStatusVisibility(Vm.HasSuccessMessage, Vm.SuccessMessage)}" />
+                <TextBlock Text="{x:Bind Vm.ErrorMessage}" FontSize="13" Foreground="{StaticResource FazlakaError}" Visibility="{x:Bind helpers:Ui.ErrorStatusVisibility(Vm.HasError, Vm.ErrorMessage)}" />
+
+                <Border Background="#0DFFFFFF" CornerRadius="14" Padding="20">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="الاسم" FontSize="13" Foreground="{StaticResource FazlakaTextSecondary}" />
+                        <TextBox Text="{x:Bind Vm.DisplayName, Mode=TwoWay}" PlaceholderText="اسمك" />
+
+                        <TextBlock Text="اسم المستخدم" FontSize="13" Foreground="{StaticResource FazlakaTextSecondary}" />
+                        <TextBox Text="{x:Bind Vm.Username, Mode=TwoWay}" PlaceholderText="username" />
+
+                        <TextBlock Text="النبذة التعريفية" FontSize="13" Foreground="{StaticResource FazlakaTextSecondary}" />
+                        <TextBox Text="{x:Bind Vm.Bio, Mode=TwoWay}" PlaceholderText="عن نفسك..." TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="120" />
+
+                        <Button Style="{StaticResource FazlakaGradientButtonStyle}" Command="{x:Bind Vm.SaveCommand}" MinWidth="140">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#7C3AED" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#6D28D9" />
+                            </Button.Resources>
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{x:Bind helpers:Ui.ToCollapsed(Vm.IsLoading)}">
+                                    <FontIcon Glyph="&#xE74E;" FontSize="14" />
+                                    <TextBlock Text="حفظ" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{x:Bind helpers:Ui.ToVisibility(Vm.IsLoading)}">
+                                    <ProgressRing Width="16" Height="16" IsActive="True" />
+                                    <TextBlock Text="جارٍ الحفظ..." />
+                                </StackPanel>
+                            </Grid>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

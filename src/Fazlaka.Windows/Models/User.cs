@@ -6,7 +6,7 @@ namespace Fazlaka.Windows.Models;
 public class User
 {
     [JsonPropertyName("id")]
-    public long Id { get; set; }
+    public string? Id { get; set; }
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
@@ -19,6 +19,12 @@ public class User
 
     [JsonPropertyName("provider")]
     public string Provider { get; set; } = string.Empty;
+
+    [JsonPropertyName("username")]
+    public string? UserName { get; set; }
+
+    [JsonPropertyName("bio")]
+    public string? Bio { get; set; }
 
     [JsonIgnore]
     public bool HasAvatar => !string.IsNullOrWhiteSpace(AvatarUrl);

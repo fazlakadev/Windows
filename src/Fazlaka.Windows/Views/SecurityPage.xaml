@@ -1,0 +1,117 @@
+<Page
+    x:Class="Fazlaka.Windows.Views.SecurityPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:helpers="using:Fazlaka.Windows.Views"
+    x:DefaultBindMode="OneWay">
+
+    <Page.Resources>
+        <LinearGradientBrush x:Key="PageBackdrop" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Offset="0" Color="#F20B0F19" />
+            <GradientStop Offset="1" Color="#C2151B2B" />
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="Hairline" Color="#14FFFFFF" />
+    </Page.Resources>
+
+    <Grid Background="{StaticResource PageBackdrop}">
+        <Grid.Transitions>
+            <TransitionCollection>
+                <EntranceThemeTransition FromVerticalOffset="24" />
+            </TransitionCollection>
+        </Grid.Transitions>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="680" HorizontalAlignment="Center" Margin="36,24,36,40" Spacing="16" FlowDirection="RightToLeft">
+                <TextBlock Text="الأمان" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="28" FontWeight="Bold" Foreground="{StaticResource FazlakaTextPrimary}" />
+                <TextBlock Text="حماية حسابك بكلمات مرور ومصادقة ثنائية." FontSize="13" Foreground="{StaticResource FazlakaTextSecondary}" />
+
+                <TextBlock Text="{x:Bind Vm.SuccessMessage}" FontSize="13" Foreground="{StaticResource FazlakaSuccess}" Visibility="{x:Bind helpers:Ui.InfoStatusVisibility(Vm.HasSuccessMessage, Vm.SuccessMessage)}" />
+                <TextBlock Text="{x:Bind Vm.ErrorMessage}" FontSize="13" Foreground="{StaticResource FazlakaError}" Visibility="{x:Bind helpers:Ui.ErrorStatusVisibility(Vm.HasError, Vm.ErrorMessage)}" />
+
+                <!-- PIN Lock -->
+                <Border Background="#0DFFFFFF" CornerRadius="14" Padding="20">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE8D7;" FontSize="18" Foreground="{StaticResource FazlakaTextPrimary}" />
+                            <TextBlock Text="قفل الرمز السري (PIN)" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource FazlakaTextPrimary}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind helpers:Ui.PinStatusText(Vm.IsPinEnabled)}" FontSize="12.5" Foreground="{StaticResource FazlakaTextSecondary}" />
+
+                        <Button Style="{StaticResource FazlakaGradientButtonStyle}" Command="{x:Bind Vm.StartSetPinCommand}" Visibility="{x:Bind helpers:Ui.ToCollapsed(Vm.IsPinEnabled)}">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#7C3AED" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#6D28D9" />
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8D7;" FontSize="13" />
+                                <TextBlock Text="تفعيل القفل" />
+                            </StackPanel>
+                        </Button>
+
+                        <StackPanel Visibility="{x:Bind helpers:Ui.ToVisibility(Vm.IsPinEnabled)}" Spacing="8">
+                            <PasswordBox x:Name="RemovePinBox" PlaceholderText="الرمز الحالي لإلغائه" />
+                            <Button Background="#14EF4444" Foreground="#F87171" BorderThickness="0" CornerRadius="10" Padding="16,10" Command="{x:Bind Vm.RemovePinCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE74D;" FontSize="13" />
+                                    <TextBlock Text="إلغاء القفل" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{x:Bind helpers:Ui.ToVisibility(Vm.IsSettingPin)}" Spacing="8">
+                            <PasswordBox x:Name="NewPinBox" PlaceholderText="أدخل رمز جديد (4+ أرقام)" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Style="{StaticResource FazlakaGradientButtonStyle}" Command="{x:Bind Vm.ConfirmSetPinCommand}">
+                                    <Button.Resources>
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#7C3AED" />
+                                    </Button.Resources>
+                                    <TextBlock Text="حفظ" />
+                                </Button>
+                                <Button Style="{StaticResource FazlakaTransparentButtonStyle}" Command="{x:Bind Vm.CancelSetPinCommand}">
+                                    <Button.Resources>
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14FFFFFF" />
+                                    </Button.Resources>
+                                    <TextBlock Text="إلغاء" Foreground="{StaticResource FazlakaTextSecondary}" />
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 2FA -->
+                <Border Background="#0DFFFFFF" CornerRadius="14" Padding="20">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE945;" FontSize="18" Foreground="{StaticResource FazlakaTextPrimary}" />
+                            <TextBlock Text="المصادقة الثنائية" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource FazlakaTextPrimary}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind helpers:Ui.TwoFaStatusText(Vm.Is2FaEnabled)}" FontSize="12.5" Foreground="{StaticResource FazlakaTextSecondary}" />
+
+                        <Button Style="{StaticResource FazlakaGradientButtonStyle}" Command="{x:Bind Vm.Setup2FaCommand}" Visibility="{x:Bind helpers:Ui.ToCollapsed(Vm.Is2FaEnabled)}">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#7C3AED" />
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE945;" FontSize="13" />
+                                <TextBlock Text="تفعيل المصادقة الثنائية" />
+                            </StackPanel>
+                        </Button>
+
+                        <StackPanel Visibility="{x:Bind helpers:Ui.ToVisibility(Vm.IsSettingUp2Fa)}" Spacing="8">
+                            <TextBlock Text="امسح رمز QR في تطبيق المصادقة، ثم أدخل الرمز:" FontSize="12.5" Foreground="{StaticResource FazlakaTextSecondary}" TextWrapping="Wrap" />
+                            <TextBox PlaceholderText="أدخل الرمز المكوّن من 6 أرقام" Text="{x:Bind Vm.TwoFaCode, Mode=TwoWay}" MaxLength="6" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Style="{StaticResource FazlakaGradientButtonStyle}" Command="{x:Bind Vm.Confirm2FaCommand}">
+                                    <Button.Resources>
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#7C3AED" />
+                                    </Button.Resources>
+                                    <TextBlock Text="تفعيل" />
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

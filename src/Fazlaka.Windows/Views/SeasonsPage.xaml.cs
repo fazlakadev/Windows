@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Fazlaka.Windows.Models;
 using Fazlaka.Windows.ViewModels;
 using Microsoft.UI.Xaml;
@@ -16,6 +17,20 @@ public sealed partial class SeasonsPage : Page
         ViewModel = new SeasonsViewModel();
         InitializeComponent();
         ViewModel.LoadSeasonsCommand.Execute(null);
+    }
+
+    public void SelectSeasonById(string? seasonId)
+    {
+        if (string.IsNullOrEmpty(seasonId))
+        {
+            return;
+        }
+
+        var match = ViewModel.Seasons.FirstOrDefault(s => s.Id == seasonId);
+        if (match is not null)
+        {
+            ViewModel.SelectedSeason = match;
+        }
     }
 
     private void OnSeasonSelectionChanged(object sender, SelectionChangedEventArgs e)

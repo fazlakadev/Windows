@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Fazlaka.Windows.Models;
@@ -6,51 +8,155 @@ namespace Fazlaka.Windows.Models;
 public class Episode
 {
     [JsonPropertyName("id")]
-    public long Id { get; set; }
+    public string? Id { get; set; }
 
-    [JsonPropertyName("title")]
-    public string Title { get; set; } = string.Empty;
+    [JsonPropertyName("slug")]
+    public string? Slug { get; set; }
 
-    [JsonPropertyName("description")]
-    public string Description { get; set; } = string.Empty;
+    [JsonPropertyName("seasonId")]
+    public string? SeasonId { get; set; }
 
-    [JsonPropertyName("audio_url")]
-    public string AudioUrl { get; set; } = string.Empty;
+    [JsonPropertyName("episodeNumber")]
+    public int EpisodeNumber { get; set; }
 
-    [JsonPropertyName("cover_url")]
-    public string CoverUrl { get; set; } = string.Empty;
+    [JsonPropertyName("coverImage")]
+    public string? CoverImage { get; set; }
+
+    [JsonPropertyName("audioUrl")]
+    public string? AudioUrl { get; set; }
+
+    [JsonPropertyName("videoUrl")]
+    public string? VideoUrl { get; set; }
 
     [JsonPropertyName("duration")]
-    public TimeSpan? Duration { get; set; }
+    public double? Duration { get; set; }
 
-    [JsonPropertyName("published_at")]
-    public DateTime? PublishedAt { get; set; }
+    [JsonPropertyName("category")]
+    public string? Category { get; set; }
 
-    [JsonPropertyName("season_id")]
-    public long SeasonId { get; set; }
+    [JsonPropertyName("published")]
+    public bool Published { get; set; }
 
-    [JsonPropertyName("season_title")]
-    public string SeasonTitle { get; set; } = string.Empty;
+    [JsonPropertyName("publishedAt")]
+    public string? PublishedAt { get; set; }
 
-    [JsonPropertyName("is_played")]
-    public bool IsPlayed { get; set; }
+    [JsonPropertyName("viewsCount")]
+    public int ViewsCount { get; set; }
 
-    [JsonPropertyName("view_count")]
-    public long ViewCount { get; set; }
+    [JsonPropertyName("likesCount")]
+    public int LikesCount { get; set; }
+
+    [JsonPropertyName("commentsCount")]
+    public int CommentsCount { get; set; }
+
+    [JsonPropertyName("tags")]
+    public List<string> Tags { get; set; } = [];
+
+    [JsonPropertyName("translations")]
+    public List<Translation> Translations { get; set; } = [];
+
+    [JsonPropertyName("season")]
+    public EpisodeSeason? Season { get; set; }
+
+    [JsonIgnore]
+    public string Title => GetTranslation("title");
+
+    [JsonIgnore]
+    public string Description => GetTranslation("description");
+
+    [JsonIgnore]
+    public string SeasonTitle => Season?.Title ?? string.Empty;
 
     [JsonIgnore]
     public bool HasAudio => !string.IsNullOrWhiteSpace(AudioUrl);
 
     [JsonIgnore]
-    public bool HasCover => !string.IsNullOrWhiteSpace(CoverUrl);
+    public bool HasCover => !string.IsNullOrWhiteSpace(CoverImage);
 
     [JsonIgnore]
-    public string FormattedDuration => Duration is { } duration
-        ? duration.Hours > 0
-            ? $"{duration.Hours}:{duration.Minutes:D2}:{duration.Seconds:D2}"
-            : $"{duration.Minutes}:{duration.Seconds:D2}"
-        : "--:--";
+    public string FormattedDuration
+    {
+        get
+        {
+            if (Duration is not double dur || dur <= 0) return "--:--";
+            return dur >= 3600
+                ? $"{(int)(dur / 3600)}:{((int)(dur % 3600) / 60):D2}:{((int)(dur % 60)):D2}"
+                : $"{(int)(dur / 60)}:{((int)(dur % 60)):D2}";
+        }
+    }
 
     [JsonIgnore]
-    public string PublishedDisplay => PublishedAt?.ToLocalTime().ToString("MMM d, yyyy") ?? string.Empty;
+    public string PublishedDisplay
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(PublishedAt)) return string.Empty;
+            if (DateTime.TryParse(PublishedAt, out var dt))
+                return dt.ToLocalTime().ToString("MMM d, yyyy");
+            return string.Empty;
+        }
+    }
+
+    private string GetTranslation(string field)
+    {
+        var t = Translations.FirstOrDefault(x => x.Locale == "ar")
+                ?? Translations.FirstOrDefault();
+        if (t == null) return string.Empty;
+        return field switch
+        {
+            "title" => t.Title ?? string.Empty,
+            "description" => t.Description ?? string.Empty,
+            _ => string.Empty
+        };
+    }
+}
+
+public class Translation
+{
+    [JsonPropertyName("id")]
+    public string? Id { get; set; }
+
+    [JsonPropertyName("locale")]
+    public string? Locale { get; set; }
+
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+
+    [JsonPropertyName("content")]
+    public string? Content { get; set; }
+}
+
+public class EpisodeSeason
+{
+    [JsonPropertyName("id")]
+    public string? Id { get; set; }
+
+    [JsonPropertyName("slug")]
+    public string? Slug { get; set; }
+
+    [JsonPropertyName("coverImage")]
+    public string? CoverImage { get; set; }
+
+    [JsonPropertyName("published")]
+    public bool Published { get; set; }
+
+    [JsonPropertyName("sortOrder")]
+    public int SortOrder { get; set; }
+
+    [JsonPropertyName("translations")]
+    public List<Translation> Translations { get; set; } = [];
+
+    [JsonIgnore]
+    public string Title
+    {
+        get
+        {
+            var t = Translations.FirstOrDefault(x => x.Locale == "ar")
+                    ?? Translations.FirstOrDefault();
+            return t?.Title ?? string.Empty;
+        }
+    }
 }

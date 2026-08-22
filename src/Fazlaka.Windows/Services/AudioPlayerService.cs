@@ -35,6 +35,38 @@ public class AudioPlayerService : IDisposable
 
     public TimeSpan Duration => _player.PlaybackSession.NaturalDuration;
 
+    public double PlaybackSpeed
+    {
+        get => _player.PlaybackSession.PlaybackRate;
+        set
+        {
+            try
+            {
+                _player.PlaybackSession.PlaybackRate = Math.Clamp(value, 0.5, 3.0);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Fazlaka] Failed to set playback rate: {ex.Message}");
+            }
+        }
+    }
+
+    public double Volume
+    {
+        get => _player.Volume;
+        set
+        {
+            try
+            {
+                _player.Volume = Math.Clamp(value, 0, 1);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Fazlaka] Failed to set volume: {ex.Message}");
+            }
+        }
+    }
+
     public IReadOnlyList<Episode> Queue
     {
         get
@@ -214,6 +246,26 @@ public class AudioPlayerService : IDisposable
             CurrentEpisode = null;
             UpdatePlaybackStatus(MediaPlaybackStatus.Stopped);
         }
+    }
+
+    public void PlayQueue(List<Episode> episodes, int startIndex = 0)
+    {
+        ArgumentNullException.ThrowIfNull(episodes);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        lock (_gate)
+        {
+            var valid = episodes.Where(e => e.HasAudio).ToList();
+            if (valid.Count == 0) return;
+
+            var idx = Math.Clamp(startIndex, 0, valid.Count - 1);
+            RebuildQueue(valid);
+            JumpToIndex(idx);
+            CurrentEpisode = valid[idx];
+            UpdateMetadata(valid[idx]);
+            _player.Play();
+            UpdatePlaybackStatus(MediaPlaybackStatus.Playing);
+        }
 
         RaiseEpisodeChanged();
         RaisePlaybackStateChanged();
@@ -391,7 +443,7 @@ public class AudioPlayerService : IDisposable
                 : episode.SeasonTitle;
 
             updater.Thumbnail = episode.HasCover &&
-                                Uri.TryCreate(episode.CoverUrl, UriKind.Absolute, out var coverUri)
+                                Uri.TryCreate(episode.CoverImage, UriKind.Absolute, out var coverUri)
                 ? RandomAccessStreamReference.CreateFromUri(coverUri)
                 : null;
 
